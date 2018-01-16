@@ -115,6 +115,58 @@
             <version>0.148</version>
         </dependency>
 
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>com.facebook.presto</groupId>
+            <artifactId>presto-tests</artifactId>
+            <version>${presto.vesion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.ampool</groupId>
+            <artifactId>monarch-test</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.ampool</groupId>
+            <artifactId>monarch-junit</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jgroups</groupId>
+            <artifactId>jgroups</artifactId>
+            <version>3.6.6.Final</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.geode</groupId>
+            <artifactId>geode-joptsimple</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.shell</groupId>
+            <artifactId>spring-shell</artifactId>
+            <version>1.2.0.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.ampool</groupId>
+            <artifactId>monarch-tierstores</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>${hive-exec.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!--Needed as monarch dependencies-->
         <dependency>
             <groupId>javax.transaction</groupId>

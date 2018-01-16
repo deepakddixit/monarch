@@ -16,22 +16,33 @@
 */
 package io.ampool.presto.connector;
 
-import com.facebook.presto.spi.*;
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.inject.Inject;
+
+import com.facebook.presto.spi.ColumnHandle;
+import com.facebook.presto.spi.ColumnMetadata;
+import com.facebook.presto.spi.ConnectorSession;
+import com.facebook.presto.spi.ConnectorTableHandle;
+import com.facebook.presto.spi.ConnectorTableLayout;
+import com.facebook.presto.spi.ConnectorTableLayoutHandle;
+import com.facebook.presto.spi.ConnectorTableLayoutResult;
+import com.facebook.presto.spi.ConnectorTableMetadata;
+import com.facebook.presto.spi.Constraint;
+import com.facebook.presto.spi.SchemaTableName;
+import com.facebook.presto.spi.SchemaTablePrefix;
+import com.facebook.presto.spi.TableNotFoundException;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
 import io.ampool.client.AmpoolClient;
 import org.apache.commons.lang.ArrayUtils;
-
-import javax.inject.Inject;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
 
 public class AmpoolMetadata implements ConnectorMetadata
 {
@@ -92,7 +103,6 @@ public class AmpoolMetadata implements ConnectorMetadata
         log.info("INFORMATION: AmpoolMetadata getTableMetadata() called.");
 
         AmpoolTableHandle exampleTableHandle = (AmpoolTableHandle) connectorTableHandle;
-        checkArgument(exampleTableHandle.getConnectorId().equals(connectorId), "tableHandle is not for this connector");
         SchemaTableName tableName = new SchemaTableName(exampleTableHandle.getSchemaName(), exampleTableHandle.getTableName());
 
         AmpoolTable table = new AmpoolTable(ampoolClient, tableName.getTableName());
@@ -129,7 +139,6 @@ public class AmpoolMetadata implements ConnectorMetadata
         log.info("INFORMATION: AmpoolMetadata getColumnHandles() called.");
 
         AmpoolTableHandle ampoolTableHandle = (AmpoolTableHandle) connectorTableHandle;
-        checkArgument(ampoolTableHandle.getConnectorId().equals(connectorId), "tableHandle is not for this connector");
 
         AmpoolTable table = new AmpoolTable(ampoolClient, ampoolTableHandle.getTableName());
         if (table.getColumnsMetadata() == null)
