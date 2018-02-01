@@ -68,9 +68,12 @@ public class AmpoolRecordSetProvider implements ConnectorRecordSetProvider
 
         // TODO: Projections and filters on Ampool side
         Iterator<Row> iterator;
-        if (ampoolClient.existsFTable(ampoolSplit.getTableName()))
-            iterator = ampoolClient.getFTable(ampoolSplit.getTableName()).getScanner(new Scan()).iterator();
-        else if (ampoolClient.existsMTable(ampoolSplit.getTableName()))
+        if (ampoolClient.existsFTable(ampoolSplit.getTableName())) {
+            iterator =
+                ampoolClient.getFTable(ampoolSplit.getTableName()).getScanner(new Scan())
+                    .iterator();
+            log.info("INFORMATION: AmpoolRecordSetProvider getRecordSet got scanner iterator");
+        }else if (ampoolClient.existsMTable(ampoolSplit.getTableName()))
             iterator = ampoolClient.getMTable(ampoolSplit.getTableName()).getScanner(new Scan()).iterator();
         else
             iterator = null;

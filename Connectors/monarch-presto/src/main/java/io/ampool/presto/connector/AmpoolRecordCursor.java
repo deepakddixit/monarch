@@ -74,7 +74,7 @@ public class AmpoolRecordCursor implements RecordCursor
         }
         rows = iterator;
 
-        log.info("INFORMATION: AmpoolMetadata created successfully.");
+        log.info("INFORMATION: AmpoolRecordCursor created successfully.");
     }
 
     @Override

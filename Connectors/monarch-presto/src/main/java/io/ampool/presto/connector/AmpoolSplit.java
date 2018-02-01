@@ -49,7 +49,7 @@ public class AmpoolSplit implements ConnectorSplit
         this.tableName = requireNonNull(tableName, "table name is null");
         this.bucketId = requireNonNull(bucketId, "bucket id is null");
         this.address = requireNonNull(address, "address is null");
-        log.info("INFORMATION: AmpoolSplit created successfully.");
+        log.info("INFORMATION: AmpoolSplit created successfully. split "+toString());
     }
 
     @JsonProperty
@@ -106,5 +106,17 @@ public class AmpoolSplit implements ConnectorSplit
     {
         log.info("INFORMATION: AmpoolSplit getInfo() called.");
         return this;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("AmpoolSplit{");
+        sb.append("connectorId='").append(connectorId).append('\'');
+        sb.append(", schemaName='").append(schemaName).append('\'');
+        sb.append(", tableName='").append(tableName).append('\'');
+        sb.append(", bucketId='").append(bucketId).append('\'');
+        sb.append(", address=").append(address);
+        sb.append('}');
+        return sb.toString();
     }
 }
