@@ -34,14 +34,14 @@ public class AmpoolSplit implements ConnectorSplit
     private final String connectorId;
     private final String schemaName;
     private final String tableName;
-    private final String bucketId;
+    private final int bucketId;
     private final HostAddress address;
 
     @JsonCreator
     public AmpoolSplit(@JsonProperty("connectorId") String connectorId,
                        @JsonProperty("schemaName") String schemaName,
                        @JsonProperty("tableName") String tableName,
-                       @JsonProperty("bucketId") String bucketId,
+                       @JsonProperty("bucketId") int bucketId,
                        @JsonProperty("address") HostAddress address)
     {
         this.schemaName = requireNonNull(schemaName, "schema name is null");
@@ -74,7 +74,7 @@ public class AmpoolSplit implements ConnectorSplit
     }
 
     @JsonProperty
-    public String getBucketId()
+    public int getBucketId()
     {
         log.info("INFORMATION: AmpoolSplit getBucketId() called.");
         return bucketId;

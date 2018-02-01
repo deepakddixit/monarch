@@ -26,6 +26,7 @@ import io.ampool.client.AmpoolClient;
 import io.ampool.monarch.table.MColumnDescriptor;
 import io.ampool.monarch.table.MTable;
 import io.ampool.monarch.table.ftable.FTable;
+import io.ampool.monarch.table.internal.Table;
 import io.ampool.monarch.types.BasicTypes;
 import io.ampool.monarch.types.interfaces.DataType;
 
@@ -38,6 +39,7 @@ public class AmpoolTable
     private final AmpoolClient ampoolClient;
     private final String name;
     private final List<ColumnMetadata> columnsMetadata;
+    private final Table table;
 
     @JsonCreator
     public AmpoolTable(@JsonProperty("ampoolClient") AmpoolClient ampoolClient,
@@ -49,7 +51,7 @@ public class AmpoolTable
         ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
         if (ampoolClient.getAdmin().existsFTable(name))
         {
-            FTable table = ampoolClient.getFTable(name);
+            this.table = ampoolClient.getFTable(name);
             for (MColumnDescriptor column : table.getTableDescriptor().getAllColumnDescriptors())
             {
                 columnsMetadata.add(new ColumnMetadata(column.getColumnNameAsString(), mapType(column.getColumnType())));
@@ -59,7 +61,7 @@ public class AmpoolTable
         }
         else if (ampoolClient.getAdmin().existsMTable(name))
         {
-            MTable table = ampoolClient.getMTable(name);
+            this.table = ampoolClient.getMTable(name);
             for (MColumnDescriptor column : table.getTableDescriptor().getAllColumnDescriptors())
             {
                 columnsMetadata.add(new ColumnMetadata(column.getColumnNameAsString(), mapType(column.getColumnType())));
@@ -70,6 +72,7 @@ public class AmpoolTable
         else
         {
             this.columnsMetadata = null;
+            this.table = null;
             log.info("INFORMATION: AmpoolTable created successfully, but didn't load any data.");
         }
 
@@ -91,6 +94,10 @@ public class AmpoolTable
     {
         log.info("INFORMATION: AmpoolTable getColumnsMetadata() called.");
         return columnsMetadata;
+    }
+
+    public Table getTable(){
+        return this.table;
     }
 
     public static Type mapType(DataType ampoolType)

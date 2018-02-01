@@ -21,7 +21,12 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.inject.Inject;
 
@@ -35,6 +40,12 @@ import com.facebook.presto.spi.connector.ConnectorSplitManager;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import io.airlift.log.Logger;
 import io.ampool.client.AmpoolClient;
+import io.ampool.internal.AmpoolOpType;
+import io.ampool.monarch.table.Pair;
+import io.ampool.monarch.table.TableDescriptor;
+import io.ampool.monarch.table.internal.MTableUtils;
+
+import org.apache.geode.distributed.internal.ServerLocation;
 
 public class AmpoolSplitManager implements ConnectorSplitManager
 {
@@ -64,7 +75,15 @@ public class AmpoolSplitManager implements ConnectorSplitManager
 
         List<ConnectorSplit> splits = new ArrayList<>();
         // TODO Pass here bucket id
-        splits.add(new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(),"" ,HostAddress.fromParts("localhost",0)));
+        TableDescriptor tableDescriptor = table.getTable().getTableDescriptor();
+        int buckets = tableDescriptor.getTotalNumOfSplits();
+        Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
+        MTableUtils.getLocationMap(table.getTable(),null,primaryBucketMap,null, AmpoolOpType.ANY_OP);
+        for (int i = 0; i < buckets; i++) {
+            ServerLocation serverLocation = primaryBucketMap.get(i);
+            splits.add(new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(),i ,HostAddress.fromParts(serverLocation.getHostName(),serverLocation.getPort())));
+        }
+
         Collections.shuffle(splits);
 
         return new FixedSplitSource(splits);
