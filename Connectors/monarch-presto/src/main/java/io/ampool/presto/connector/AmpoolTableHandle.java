@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import io.airlift.log.Logger;
+import io.ampool.presto.log.AmpoolLogger;
 
 import java.util.Objects;
 
@@ -29,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 
 public class AmpoolTableHandle implements ConnectorTableHandle
 {
-    private static final Logger log = Logger.get(AmpoolTableHandle.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolTableHandle.class);
 
     private final String connectorId;
     private final String schemaName;

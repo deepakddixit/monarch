@@ -16,21 +16,21 @@
 */
 package io.ampool.presto.connector;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static java.util.Objects.requireNonNull;
+
+import java.util.Objects;
+
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
 import com.facebook.presto.spi.type.Type;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.airlift.log.Logger;
-
-import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static java.util.Objects.requireNonNull;
+import io.ampool.presto.log.AmpoolLogger;
 
 public class AmpoolColumnHandle implements ColumnHandle
 {
-    private static final Logger log = Logger.get(AmpoolColumnHandle.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolColumnHandle.class);
 
     private final String connectorId;
     private final String columnName;

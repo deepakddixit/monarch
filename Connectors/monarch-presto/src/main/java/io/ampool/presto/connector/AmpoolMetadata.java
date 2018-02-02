@@ -42,11 +42,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
 import io.ampool.client.AmpoolClient;
+import io.ampool.presto.log.AmpoolLogger;
 import org.apache.commons.lang.ArrayUtils;
 
 public class AmpoolMetadata implements ConnectorMetadata
 {
-    private static final Logger log = Logger.get(AmpoolMetadata.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolMetadata.class);
 
     private final String connectorId;
     private final AmpoolClient ampoolClient;

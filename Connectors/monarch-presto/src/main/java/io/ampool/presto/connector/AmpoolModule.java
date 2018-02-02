@@ -22,12 +22,13 @@ import com.google.inject.Module;
 import com.google.inject.Scopes;
 import io.airlift.log.Logger;
 import io.ampool.client.AmpoolClient;
+import io.ampool.presto.log.AmpoolLogger;
 
 import static java.util.Objects.requireNonNull;
 
 public class AmpoolModule implements Module
 {
-    private static final Logger log = Logger.get(AmpoolModule.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolModule.class);
 
     private final String connectorId;
     private final AmpoolClient ampoolClient;

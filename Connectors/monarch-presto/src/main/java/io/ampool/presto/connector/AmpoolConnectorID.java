@@ -17,6 +17,7 @@
 package io.ampool.presto.connector;
 
 import io.airlift.log.Logger;
+import io.ampool.presto.log.AmpoolLogger;
 
 import java.util.Objects;
 
@@ -24,7 +25,7 @@ import static java.util.Objects.requireNonNull;
 
 public final class AmpoolConnectorID
 {
-    private static final Logger log = Logger.get(AmpoolConnectorID.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolConnectorID.class);
 
     private final String id;
 

@@ -29,12 +29,13 @@ import io.ampool.monarch.table.ftable.FTable;
 import io.ampool.monarch.table.internal.Table;
 import io.ampool.monarch.types.BasicTypes;
 import io.ampool.monarch.types.interfaces.DataType;
+import io.ampool.presto.log.AmpoolLogger;
 
 import java.util.List;
 
 public class AmpoolTable
 {
-    private static final Logger log = Logger.get(AmpoolTable.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolTable.class);
 
     private final AmpoolClient ampoolClient;
     private final String name;

@@ -44,12 +44,13 @@ import io.ampool.internal.AmpoolOpType;
 import io.ampool.monarch.table.Pair;
 import io.ampool.monarch.table.TableDescriptor;
 import io.ampool.monarch.table.internal.MTableUtils;
+import io.ampool.presto.log.AmpoolLogger;
 
 import org.apache.geode.distributed.internal.ServerLocation;
 
 public class AmpoolSplitManager implements ConnectorSplitManager
 {
-    private static final Logger log = Logger.get(AmpoolSplitManager.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolSplitManager.class);
 
     private final String connectorId;
     private final AmpoolClient ampoolClient;

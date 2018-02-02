@@ -19,10 +19,11 @@ package io.ampool.presto.connector;
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import io.airlift.log.Logger;
+import io.ampool.presto.log.AmpoolLogger;
 
 public class AmpoolHandleResolver implements ConnectorHandleResolver
 {
-    private static final Logger log = Logger.get(AmpoolHandleResolver.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolHandleResolver.class);
 
     @Override
     public Class<? extends ConnectorTableLayoutHandle> getTableLayoutHandleClass()

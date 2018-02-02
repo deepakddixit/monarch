@@ -20,12 +20,13 @@ import com.facebook.presto.spi.ConnectorTableLayoutHandle;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.airlift.log.Logger;
+import io.ampool.presto.log.AmpoolLogger;
 
 import java.util.Objects;
 
 public class AmpoolTableLayoutHandle implements ConnectorTableLayoutHandle
 {
-    private static final Logger log = Logger.get(AmpoolTableLayoutHandle.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolTableLayoutHandle.class);
 
     private final AmpoolTableHandle table;
 

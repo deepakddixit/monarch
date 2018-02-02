@@ -27,6 +27,7 @@ import io.airlift.bootstrap.Bootstrap;
 import io.airlift.log.Logger;
 import io.ampool.client.AmpoolClient;
 import io.ampool.conf.Constants;
+import io.ampool.presto.log.AmpoolLogger;
 
 import java.util.Map;
 import java.util.Properties;
@@ -35,7 +36,7 @@ import static java.util.Objects.requireNonNull;
 
 public class AmpoolConnectorFactory implements ConnectorFactory {
   //TODO: Finish logging
-  private static final Logger log = Logger.get(AmpoolConnectorFactory.class);
+  private static final AmpoolLogger log = AmpoolLogger.get(AmpoolConnectorFactory.class);
 
   public String getName() {
     return "ampool";

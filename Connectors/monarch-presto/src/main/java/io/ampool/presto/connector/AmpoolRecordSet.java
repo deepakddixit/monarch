@@ -22,6 +22,7 @@ import com.facebook.presto.spi.type.Type;
 import com.google.common.collect.ImmutableList;
 import io.airlift.log.Logger;
 import io.ampool.monarch.table.Row;
+import io.ampool.presto.log.AmpoolLogger;
 
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +31,7 @@ import static java.util.Objects.requireNonNull;
 
 public class AmpoolRecordSet implements RecordSet
 {
-    private static final Logger log = Logger.get(AmpoolRecordSet.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolRecordSet.class);
 
     private final List<AmpoolColumnHandle> columnHandles;
     private final List<Type> columnTypes;

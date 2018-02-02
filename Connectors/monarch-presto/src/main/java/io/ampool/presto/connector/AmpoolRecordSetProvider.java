@@ -27,6 +27,7 @@ import io.airlift.log.Logger;
 import io.ampool.client.AmpoolClient;
 import io.ampool.monarch.table.Row;
 import io.ampool.monarch.table.Scan;
+import io.ampool.presto.log.AmpoolLogger;
 
 import javax.inject.Inject;
 import java.util.Iterator;
@@ -37,7 +38,7 @@ import static java.util.Objects.requireNonNull;
 
 public class AmpoolRecordSetProvider implements ConnectorRecordSetProvider
 {
-    private static final Logger log = Logger.get(AmpoolRecordSetProvider.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolRecordSetProvider.class);
 
     private final String connectorId;
     private final AmpoolClient ampoolClient;

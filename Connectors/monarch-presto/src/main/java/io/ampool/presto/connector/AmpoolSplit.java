@@ -26,10 +26,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import io.airlift.log.Logger;
+import io.ampool.presto.log.AmpoolLogger;
 
 public class AmpoolSplit implements ConnectorSplit
 {
-    private static final Logger log = Logger.get(AmpoolSplit.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolSplit.class);
 
     private final String connectorId;
     private final String schemaName;

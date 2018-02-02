@@ -26,6 +26,7 @@ import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
 import io.ampool.monarch.table.Row;
+import io.ampool.presto.log.AmpoolLogger;
 import org.apache.commons.lang3.time.FastDateFormat;
 
 import java.nio.ByteBuffer;
@@ -50,7 +51,7 @@ import static java.lang.String.format;
 
 public class AmpoolRecordCursor implements RecordCursor
 {
-    private static final Logger log = Logger.get(AmpoolRecordCursor.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolRecordCursor.class);
 
     private static final TimeZone gmt = TimeZone.getTimeZone("GMT");
     private static final FastDateFormat TIME_FORMAT_DATE = FastDateFormat.getInstance("yyyy-MM-dd", gmt);
@@ -138,7 +139,7 @@ public class AmpoolRecordCursor implements RecordCursor
             }
             catch (ParseException e)
             {
-                log.debug("WARNING: TIMESTAMP not handled correctly.");
+//                log.debug("WARNING: TIMESTAMP not handled correctly.");
                 return 0;
             }
         }
@@ -151,7 +152,7 @@ public class AmpoolRecordCursor implements RecordCursor
             }
             catch (ParseException e)
             {
-                log.debug("WARNING: DATE not handled correctly.");
+//                log.debug("WARNING: DATE not handled correctly.");
                 return 0;
             }
         }

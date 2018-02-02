@@ -17,19 +17,23 @@
 
 package io.ampool.presto.connector;
 
-import com.facebook.presto.spi.connector.*;
-import com.facebook.presto.spi.transaction.IsolationLevel;
-import io.airlift.bootstrap.LifeCycleManager;
-import io.airlift.log.Logger;
-
-import javax.inject.Inject;
-
 import static io.ampool.presto.connector.AmpoolTransactionHandle.INSTANCE;
 import static java.util.Objects.requireNonNull;
 
+import javax.inject.Inject;
+
+import com.facebook.presto.spi.connector.Connector;
+import com.facebook.presto.spi.connector.ConnectorMetadata;
+import com.facebook.presto.spi.connector.ConnectorRecordSetProvider;
+import com.facebook.presto.spi.connector.ConnectorSplitManager;
+import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import com.facebook.presto.spi.transaction.IsolationLevel;
+import io.airlift.bootstrap.LifeCycleManager;
+import io.ampool.presto.log.AmpoolLogger;
+
 public class AmpoolConnector implements Connector
 {
-    private static final Logger log = Logger.get(AmpoolConnector.class);
+    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolConnector.class);
 
     private final LifeCycleManager lifeCycleManager;
     private final AmpoolMetadata metadata;
