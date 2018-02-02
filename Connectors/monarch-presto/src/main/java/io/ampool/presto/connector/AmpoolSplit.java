@@ -92,7 +92,7 @@ public class AmpoolSplit implements ConnectorSplit
     public boolean isRemotelyAccessible()
     {
         log.info("INFORMATION: AmpoolSplit isRemotelyAccessible() called.");
-        return true;
+        return false;
     }
 
     @Override

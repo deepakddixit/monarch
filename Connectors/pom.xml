@@ -227,12 +227,12 @@
     </build>
 
     <modules>
-        <module>monarch-spark_1.6</module>
+	    <!-- <module>monarch-spark_1.6</module>
         <module>monarch-spark_2.1</module>
         <module>monarch-connect-kafka</module>
         <module>monarch-distributed-test</module>
         <module>monarch-common</module>
-        <module>monarch-hive</module>
+	<module>monarch-hive</module> -->
         <module>monarch-presto</module>
         <module>monarch-assembly-descriptor</module>
         <module>monarch-assembly</module>
