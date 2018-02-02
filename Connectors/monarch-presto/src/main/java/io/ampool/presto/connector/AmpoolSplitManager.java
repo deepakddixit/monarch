@@ -49,44 +49,58 @@ import io.ampool.presto.log.AmpoolLogger;
 
 import org.apache.geode.distributed.internal.ServerLocation;
 
-public class AmpoolSplitManager implements ConnectorSplitManager
-{
-    private static final AmpoolLogger log = AmpoolLogger.get(AmpoolSplitManager.class);
+public class AmpoolSplitManager implements ConnectorSplitManager {
+  private static final AmpoolLogger log = AmpoolLogger.get(AmpoolSplitManager.class);
 
-    private final String connectorId;
-    private final AmpoolClient ampoolClient;
+  private final String connectorId;
+  private final AmpoolClient ampoolClient;
 
-    @Inject
-    public AmpoolSplitManager(AmpoolConnectorID connectorId, AmpoolClient ampoolClient)
-    {
-        this.connectorId = requireNonNull(connectorId, "connectorId is null").toString();
-        this.ampoolClient = requireNonNull(ampoolClient, "client is null");
-        log.info("INFORMATION: AmpoolSplitManager created successfully.");
+  @Inject
+  public AmpoolSplitManager(AmpoolConnectorID connectorId, AmpoolClient ampoolClient) {
+    this.connectorId = requireNonNull(connectorId, "connectorId is null").toString();
+    this.ampoolClient = requireNonNull(ampoolClient, "client is null");
+    log.info("INFORMATION: AmpoolSplitManager created successfully.");
+  }
+
+  @Override
+  public ConnectorSplitSource getSplits(ConnectorTransactionHandle handle, ConnectorSession session,
+                                        ConnectorTableLayoutHandle layout) {
+    log.info("INFORMATION: AmpoolSplitManager getSplits() called.");
+
+    AmpoolTableLayoutHandle layoutHandle = (AmpoolTableLayoutHandle) layout;
+    AmpoolTableHandle tableHandle = layoutHandle.getTable();
+    AmpoolTable table = new AmpoolTable(ampoolClient, tableHandle.getTableName());
+    // this can happen if table is removed during a query
+    checkState(table.getColumnsMetadata() != null, "Table %s.%s no longer exists",
+        tableHandle.getSchemaName(), tableHandle.getTableName());
+
+    List<ConnectorSplit> splits = new ArrayList<>();
+    // TODO Pass here bucket id
+    TableDescriptor tableDescriptor = table.getTable().getTableDescriptor();
+    int buckets = tableDescriptor.getTotalNumOfSplits();
+    Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
+    MTableUtils.getLocationMap(table.getTable(), null, primaryBucketMap, null, AmpoolOpType.ANY_OP);
+    log.debug("Ampool splits location " + TypeHelper.deepToString(primaryBucketMap));
+    for (int i = 0; i < buckets; i++) {
+      ServerLocation serverLocation = primaryBucketMap.get(i);
+      splits.add(
+          new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), i,
+              HostAddress.fromParts(getIPAddress(serverLocation.getHostName()),
+                  serverLocation.getPort())));
     }
-
-    @Override
-    public ConnectorSplitSource getSplits(ConnectorTransactionHandle handle, ConnectorSession session, ConnectorTableLayoutHandle layout)
-    {
-        log.info("INFORMATION: AmpoolSplitManager getSplits() called.");
-
-        AmpoolTableLayoutHandle layoutHandle = (AmpoolTableLayoutHandle) layout;
-        AmpoolTableHandle tableHandle = layoutHandle.getTable();
-        AmpoolTable table = new AmpoolTable(ampoolClient, tableHandle.getTableName());
-        // this can happen if table is removed during a query
-        checkState(table.getColumnsMetadata() != null, "Table %s.%s no longer exists", tableHandle.getSchemaName(), tableHandle.getTableName());
-
-        List<ConnectorSplit> splits = new ArrayList<>();
-        // TODO Pass here bucket id
-        TableDescriptor tableDescriptor = table.getTable().getTableDescriptor();
-        int buckets = tableDescriptor.getTotalNumOfSplits();
-        Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
-        MTableUtils.getLocationMap(table.getTable(),null,primaryBucketMap,null, AmpoolOpType.ANY_OP);
-        log.debug("Ampool splits location "+ TypeHelper.deepToString(primaryBucketMap));
-        for (int i = 0; i < buckets; i++) {
-            ServerLocation serverLocation = primaryBucketMap.get(i);
-            splits.add(new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(),i ,HostAddress.fromParts(serverLocation.getHostName(),serverLocation.getPort())));
-        }
 //        Collections.shuffle(splits);
-        return new FixedSplitSource(splits);
+    return new FixedSplitSource(splits);
+  }
+
+  private String getIPAddress(String hostName) {
+    if (hostName.contains("9fxk")) {
+      return "10.128.0.13";
+    } else if (hostName.contains("kb9m")) {
+      return "10.128.0.23";
     }
+    if (hostName.contains("xdv0")) {
+      return "10.128.0.24";
+    }
+    return hostName;
+  }
 }
