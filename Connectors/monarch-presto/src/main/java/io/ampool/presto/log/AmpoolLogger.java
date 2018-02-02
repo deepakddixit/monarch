@@ -20,7 +20,7 @@ public class AmpoolLogger {
 //    logger.info(message);
   }
 
-  public void log(String message) {
+  public void debug(String message) {
     logger.info(message);
   }
 }

@@ -44,6 +44,7 @@ import io.ampool.internal.AmpoolOpType;
 import io.ampool.monarch.table.Pair;
 import io.ampool.monarch.table.TableDescriptor;
 import io.ampool.monarch.table.internal.MTableUtils;
+import io.ampool.monarch.types.TypeHelper;
 import io.ampool.presto.log.AmpoolLogger;
 
 import org.apache.geode.distributed.internal.ServerLocation;
@@ -80,13 +81,12 @@ public class AmpoolSplitManager implements ConnectorSplitManager
         int buckets = tableDescriptor.getTotalNumOfSplits();
         Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
         MTableUtils.getLocationMap(table.getTable(),null,primaryBucketMap,null, AmpoolOpType.ANY_OP);
+        log.debug("Ampool splits location "+ TypeHelper.deepToString(primaryBucketMap));
         for (int i = 0; i < buckets; i++) {
             ServerLocation serverLocation = primaryBucketMap.get(i);
             splits.add(new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(),i ,HostAddress.fromParts(serverLocation.getHostName(),serverLocation.getPort())));
         }
-
-        Collections.shuffle(splits);
-
+//        Collections.shuffle(splits);
         return new FixedSplitSource(splits);
     }
 }

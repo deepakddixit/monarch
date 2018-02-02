@@ -69,6 +69,7 @@ public class AmpoolRecordSetProvider implements ConnectorRecordSetProvider
 
         // create scan object
         Scan scan = new Scan();
+        log.debug("Initializing scan for bucket: "+ampoolSplit.getBucketId());
         scan.setBucketId(ampoolSplit.getBucketId());
 
         // TODO: Projections and filters on Ampool side
@@ -77,7 +78,7 @@ public class AmpoolRecordSetProvider implements ConnectorRecordSetProvider
             iterator =
                 ampoolClient.getFTable(ampoolSplit.getTableName()).getScanner(scan)
                     .iterator();
-            log.info("INFORMATION: AmpoolRecordSetProvider getRecordSet got scanner iterator");
+            log.debug("INFORMATION: AmpoolRecordSetProvider getRecordSet got scanner iterator");
         }else if (ampoolClient.existsMTable(ampoolSplit.getTableName()))
             iterator = ampoolClient.getMTable(ampoolSplit.getTableName()).getScanner(scan).iterator();
         else
