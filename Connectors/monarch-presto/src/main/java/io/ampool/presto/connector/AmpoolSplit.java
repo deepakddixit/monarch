@@ -50,7 +50,7 @@ public class AmpoolSplit implements ConnectorSplit
         this.tableName = requireNonNull(tableName, "table name is null");
         this.bucketId = requireNonNull(bucketId, "bucket id is null");
         this.address = requireNonNull(address, "address is null");
-        log.info("INFORMATION: AmpoolSplit created successfully. split "+toString());
+        log.log("INFORMATION: AmpoolSplit created successfully. split "+toString());
     }
 
     @JsonProperty

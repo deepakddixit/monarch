@@ -19,4 +19,8 @@ public class AmpoolLogger {
   public void info(String message){
 //    logger.info(message);
   }
+
+  public void log(String message) {
+    logger.info(message);
+  }
 }
