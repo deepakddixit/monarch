@@ -85,8 +85,9 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
       ServerLocation serverLocation = primaryBucketMap.get(i);
       splits.add(
           new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), i,
-              HostAddress.fromParts(getIPAddress(serverLocation.getHostName()),
-                  serverLocation.getPort())));
+              HostAddress.fromString(serverLocation.getHostName())));
+              /*HostAddress.fromParts(getIPAddress(serverLocation.getHostName()),
+                  serverLocation.getPort())));*/
     }
 //        Collections.shuffle(splits);
     return new FixedSplitSource(splits);
