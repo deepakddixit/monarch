@@ -49,6 +49,7 @@ import io.ampool.monarch.table.ftable.FTable;
 import io.ampool.monarch.table.ftable.FTableDescriptor;
 import io.ampool.monarch.table.ftable.Record;
 import io.ampool.monarch.table.ftable.internal.BlockValue;
+import io.ampool.monarch.table.internal.AbstractTableDescriptor;
 import io.ampool.monarch.table.internal.AdminImpl;
 import io.ampool.monarch.table.internal.IMKey;
 import io.ampool.monarch.table.region.map.RowTupleConcurrentSkipListMap;
@@ -97,6 +98,11 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
   @Override
   public void tearDown2() throws Exception {
+    final Admin admin = MClientCacheFactory.getAnyInstance().getAdmin();
+    final String tableName = getMethodName();
+    if (admin.existsFTable(tableName)) {
+      admin.deleteFTable(tableName);
+    }
     closeMClientCache();
     closeMClientCache(client1);
     allServers.forEach((VM) -> VM.invoke(new SerializableCallable() {
@@ -113,7 +119,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
   @Parameterized.Parameter
   public static FTableDescriptor.BlockFormat blockFormat;
 
-  @Parameterized.Parameters(name = "BlockFormat: {0}")
+  @Parameterized.Parameters(name = "BlockFormat__{0}")
   public static Collection<FTableDescriptor.BlockFormat> data() {
     return Arrays.asList(FTableDescriptor.BlockFormat.values());
   }
@@ -125,18 +131,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
    * @return the test method name
    */
   public static String getMethodName() {
-    final String methodName = getTestMethodName();
-    final int index = methodName.indexOf('[');
-    return index > 0 ? methodName.substring(0, index) : methodName;
-  }
-
-  @After
-  public void cleanUpMethod() {
-    final Admin admin = MClientCacheFactory.getAnyInstance().getAdmin();
-    final String tableName = getMethodName();
-    if (admin.existsFTable(tableName)) {
-      admin.deleteFTable(tableName);
-    }
+    return getTestMethodName().replaceAll("\\W+", "_");
   }
 
   protected MTable createMTable(MTableType tableType, String tableName) {
@@ -168,7 +163,8 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
   private FTable createFtable(String tableName) {
     FTableDescriptor fd = new FTableDescriptor();
-    fd.setBlockSize(1000);
+    fd.setBlockSize(13);
+    fd.setTotalNumOfSplits(11);
 
     for (int i = 0; i < NUM_COLS; i++) {
       fd.addColumn("COL_" + i);
@@ -647,7 +643,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
     verifyRecordCountOnClient(tableName, 399);
     try {
-      Thread.sleep(10000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -715,7 +711,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     filterList.setOperator(FilterList.Operator.MUST_PASS_ALL);
     verifyRecordCountOnServers(tableName, 2000);
 
-    Thread.sleep(1000l);
+    Thread.sleep(500);
 
     try {
       ((AdminImpl) MClientCacheFactory.getAnyInstance().getAdmin()).truncateFTable(tableName,
@@ -728,7 +724,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
     verifyRecordCountOnClient(tableName, 1399);
     try {
-      Thread.sleep(20000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -795,7 +791,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     verifyRecordCountOnServers(tableName, 2000);
 
     try {
-      Thread.sleep(20000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -811,7 +807,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
     verifyRecordCountOnClient(tableName, 1399);
     try {
-      Thread.sleep(20000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -944,7 +940,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     verifyRecordCountOnServers(tableName, 2000);
 
     try {
-      Thread.sleep(20000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -960,7 +956,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
     verifyRecordCountOnClient(tableName, 1399);
     try {
-      Thread.sleep(20000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -974,10 +970,18 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     for (VM vm : allServers) {
       asyncStartServerOn(vm, DUnitLauncher.getLocatorString());
     }
-    Thread.sleep(5000l);
+    Thread.sleep(5_000);
 
-    verifyRecordCountOnClient(tableName, 1399);
-    verifyRecordCountOnServers(tableName, 1399);
+    FTableDescriptor ftd =
+        MClientCacheFactory.getAnyInstance().getFTable(tableName).getTableDescriptor();
+
+    if (((AbstractTableDescriptor) ftd).isDiskPersistenceEnabled()) {
+      verifyRecordCountOnClient(tableName, 1399);
+      verifyRecordCountOnServers(tableName, 1399);
+    }
+
+
+
   }
 
   /**
@@ -1024,7 +1028,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
     verifyRecordCountOnServers(tableName, 2000);
     try {
-      Thread.sleep(20000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -1039,7 +1043,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
 
     verifyRecordCountOnClient(tableName, 1999);
     try {
-      Thread.sleep(20000);
+      Thread.sleep(500);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
@@ -1107,7 +1111,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     filterList.setOperator(FilterList.Operator.MUST_PASS_ALL);
     verifyRecordCountOnServers(tableName, 2000);
 
-    Thread.sleep(1000l);
+    Thread.sleep(500);
 
     try {
       MClientCacheFactory.getAnyInstance().getAdmin().truncateFTable(tableName, filterList);
@@ -1118,9 +1122,8 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     assertNull(e);
 
     verifyRecordCountOnClient(tableName, 1399);
-    Thread.sleep(1000l);
+    Thread.sleep(500);
 
-    // TODO: check
     verifyRecordCountOnServers(tableName, 1399);
     verifyRecordCountOnClient(tableName, 1399);
   }
@@ -1129,7 +1132,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
    * Most of the above tests put data in a single bucket(same records hash) this will verify the
    * functionality on multi bucket case with restart.
    */
-  // TODO @Test
+  @Test
   public void testTruncatePartialBlockMultiNodeMultiBucketWithRestart()
       throws InterruptedException {
     String tableName = getMethodName();
@@ -1186,7 +1189,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     filterList.setOperator(FilterList.Operator.MUST_PASS_ALL);
     verifyRecordCountOnServers(tableName, 2000);
 
-    Thread.sleep(1000l);
+    Thread.sleep(500);
 
     try {
       MClientCacheFactory.getAnyInstance().getAdmin().truncateFTable(tableName, filterList);
@@ -1197,23 +1200,14 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
     assertNull(e);
 
     verifyRecordCountOnClient(tableName, 1399);
-    Thread.sleep(1000l);
-    // TODO: check
-    // verifyRecordCountOnServers(tableName, 1399);
+    Thread.sleep(500);
+    verifyRecordCountOnServers(tableName, 1399);
     verifyRecordCountOnClient(tableName, 1399);
 
-    for (VM vm : allServers) {
-      stopServerOn(vm);
-    }
+    restartServers(allServers);
+    Thread.sleep(5_000);
 
-    Collections.reverse(allServers);
-    for (VM vm : allServers) {
-      startServerOn(vm, DUnitLauncher.getLocatorString());
-    }
-    Collections.reverse(allServers);
-
-    // TODO: check
-    // verifyRecordCountOnServers(tableName, 1399);
+    verifyRecordCountOnServers(tableName, 1399);
     verifyRecordCountOnClient(tableName, 1399);
   }
 
@@ -1226,7 +1220,7 @@ public class FTableTruncateDUnitTest extends MTableDUnitHelper {
             new Pair("DEPT", BasicTypes.STRING), new Pair("DOJ", BasicTypes.DATE),};
     Long startTimeStamp;
 
-    Integer blockSize = 10;
+    Integer blockSize = 13;
     Integer numBuckets = 4;
 
     Integer partitionColIdx = 1;

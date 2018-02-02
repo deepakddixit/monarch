@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.ampool.monarch.table.internal.MTableUtils;
 import org.apache.commons.io.FileUtils;
 
 import org.apache.geode.distributed.internal.DistributionConfig;
@@ -225,6 +226,11 @@ public class ProcessManager {
     cmds.add("-XX:+PrintGC");
     cmds.add("-XX:+PrintGCDetails");
     cmds.add("-XX:+PrintGCTimeStamps");
+    cmds.add("-XX:HeapDumpPath=/tmp");
+
+    cmds.add("-D" + MTableUtils.AMPL_DELTA_PERS_PROP_NAME + "="
+        + System.getProperty(MTableUtils.AMPL_DELTA_PERS_PROP_NAME, "true"));
+
     cmds.add(agent);
     cmds.add(ChildVM.class.getName());
     String[] rst = new String[cmds.size()];

@@ -17,7 +17,10 @@ package io.ampool.monarch.table.facttable.dunit;
 import static org.junit.Assert.*;
 
 import java.util.LinkedHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.ampool.monarch.table.ftable.exceptions.FTableExistsException;
+import io.ampool.monarch.table.ftable.internal.FTableImpl;
 import org.apache.geode.cache.Region;
 import org.apache.geode.test.dunit.Host;
 import org.apache.geode.test.dunit.IgnoredException;
@@ -258,20 +261,28 @@ public class CreateFactTableDUnitTest extends MTableDUnitHelper {
     thread2.join();
   }
 
+  private static final AtomicBoolean executeThread2 = new AtomicBoolean(false);
+
   /**
    * Positive case for table creation Two tables with different name are created though different
    * thread
    */
   @Test
   public void testTwoFTableWithSameNameCreationThreaded() throws InterruptedException {
-    IgnoredException.addIgnoredException(MTableExistsException.class.getName());
+    IgnoredException.addIgnoredException(FTableExistsException.class.getName());
     String tableName = getTestMethodName();
     final Thread thread = invokeInThreadOnVM(vm3, new SerializableCallable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
-        FTableDescriptor fTableDescriptor =
-            getFTableDescriptor(CreateFactTableDUnitTest.NUM_OF_SPLITS, 0);
-        FTable table = CreateFactTableDUnitTest.createFTable(tableName, fTableDescriptor);
+        try {
+          FTableDescriptor fTableDescriptor =
+              getFTableDescriptor(CreateFactTableDUnitTest.NUM_OF_SPLITS, 0);
+          FTable table = CreateFactTableDUnitTest.createFTable(tableName, fTableDescriptor);
+          assertNotNull(table);
+          executeThread2.set(true);
+        } catch (Exception e) {
+          fail("No exception expected but got: " + e.getMessage());
+        }
         return true;
       }
     });
@@ -283,6 +294,10 @@ public class CreateFactTableDUnitTest extends MTableDUnitHelper {
         try {
           FTableDescriptor fTableDescriptor =
               getFTableDescriptor(CreateFactTableDUnitTest.NUM_OF_SPLITS, 1);
+          /* wait till previous thread completes the table creation */
+          while (!executeThread2.get()) {
+            Thread.sleep(100);
+          }
           FTable table = CreateFactTableDUnitTest.createFTable(tableName, fTableDescriptor);
           assertNull(table);
         } catch (Exception e) {
@@ -295,10 +310,10 @@ public class CreateFactTableDUnitTest extends MTableDUnitHelper {
     thread.join();
     thread2.join();
     System.out.println("CreateMTableDUnitTest.testTwoFTableWithSameNameCreationThreaded :: " + ""
-        + exceptionThread2);
+        + exceptionThread2.getCause());
     assertNotNull(exceptionThread2);
     // IMP: using getCause since exception from invoke method on VM is wrapping it as RMIException
-    assertTrue(exceptionThread2.getCause() instanceof MTableExistsException);
+    assertTrue(exceptionThread2.getCause() instanceof FTableExistsException);
 
     // TODO what thread will be succeeded is unpredictable, so how to check it
     // 1. Get tabledescriptor from the meta region that should be present on each of the server
@@ -314,6 +329,7 @@ public class CreateFactTableDUnitTest extends MTableDUnitHelper {
     vm2.invoke(() -> {
       CreateFactTableDUnitTest.verifyTableOnServer(tableName, desc);
     });
+    MClientCacheFactory.getAnyInstance().getAdmin().deleteFTable(tableName);
     IgnoredException.removeAllExpectedExceptions();
   }
 
@@ -377,7 +393,7 @@ public class CreateFactTableDUnitTest extends MTableDUnitHelper {
       // }
     } while (mtable == null && retries < 500);
     assertNotNull(mtable);
-    final Region<Object, Object> mregion = ((ProxyFTableRegion) mtable).getTableRegion();
+    final Region<Object, Object> mregion = ((FTableImpl) mtable).getTableRegion();
     String path = mregion.getFullPath();
     assertTrue(path.contains(tableName));
     // To verify disk persistence

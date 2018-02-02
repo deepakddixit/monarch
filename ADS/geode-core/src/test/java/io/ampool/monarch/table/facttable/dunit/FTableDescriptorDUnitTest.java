@@ -33,7 +33,9 @@ import io.ampool.monarch.table.client.MClientCache;
 import io.ampool.monarch.table.client.MClientCacheFactory;
 import io.ampool.monarch.table.ftable.FTable;
 import io.ampool.monarch.table.ftable.FTableDescriptor;
+import io.ampool.monarch.table.ftable.internal.FTableImpl;
 import io.ampool.monarch.table.ftable.internal.ProxyFTableRegion;
+import io.ampool.monarch.table.internal.AbstractTableDescriptor;
 import io.ampool.monarch.table.internal.MPartitionResolver;
 import io.ampool.monarch.table.internal.MTableUtils;
 import io.ampool.monarch.types.BasicTypes;
@@ -213,7 +215,7 @@ public class FTableDescriptorDUnitTest extends MTableDUnitHelper {
 
     // System.out.println("NNN FTableDescriptorDUnitTest.verifyTableDescriptor ==> " +
     // ftd.getRecoveryDiskStore());
-    Assert.assertEquals(MTableUtils.DEFAULT_DISK_STORE_NAME, ftd.getRecoveryDiskStore());
+    Assert.assertEquals(MTableUtils.DEFAULT_FTABLE_DISK_STORE_NAME, ftd.getRecoveryDiskStore());
 
     // System.out.println("NNN FTableDescriptorDUnitTest.verifyTableDescriptor ==> " +
     // ftd.getDiskWritePolicy().name());
@@ -416,37 +418,43 @@ public class FTableDescriptorDUnitTest extends MTableDUnitHelper {
     doCreateFTable();
 
     System.out.println("----------------------- RESTARTING SERVERS ----------------------------");
-    restart();
-    System.out.println("----------------------- RESTARTING SERVERS DONE -----------------------");
 
-    // verify recovery from server
-    server1.invoke(new SerializableCallable() {
-      public Object call() throws Exception {
-        verifyMetaRegion(false);
-        return null;
-      }
-    });
+    // After fix for GEN-2139, adding conditional restart of servers
+    FTableDescriptor fTableDescriptor = getFTableDescriptor();
+    if (((AbstractTableDescriptor) fTableDescriptor).isDiskPersistenceEnabled()) {
 
-    server2.invoke(new SerializableCallable() {
-      public Object call() throws Exception {
-        verifyMetaRegion(false);
-        return null;
-      }
-    });
+      restart();
+      System.out.println("----------------------- RESTARTING SERVERS DONE -----------------------");
 
-    server3.invoke(new SerializableCallable() {
-      public Object call() throws Exception {
-        verifyMetaRegion(false);
-        return null;
-      }
-    });
+      // verify recovery from server
+      server1.invoke(new SerializableCallable() {
+        public Object call() throws Exception {
+          verifyMetaRegion(false);
+          return null;
+        }
+      });
 
-    // Verify recovery from client: meta-region (FTableDescriptor) and user-table after server
-    // restart
-    FTable table = MClientCacheFactory.getAnyInstance().getFTable(TABLE_NAME);
-    assertNotNull(table);
+      server2.invoke(new SerializableCallable() {
+        public Object call() throws Exception {
+          verifyMetaRegion(false);
+          return null;
+        }
+      });
 
-    verifyMetaRegion(true);
+      server3.invoke(new SerializableCallable() {
+        public Object call() throws Exception {
+          verifyMetaRegion(false);
+          return null;
+        }
+      });
+
+      // Verify recovery from client: meta-region (FTableDescriptor) and user-table after server
+      // restart
+      FTable table = MClientCacheFactory.getAnyInstance().getFTable(TABLE_NAME);
+      assertNotNull(table);
+
+      verifyMetaRegion(true);
+    }
 
   }
   /////////////// Reconnect related code changes
@@ -492,7 +500,7 @@ public class FTableDescriptorDUnitTest extends MTableDUnitHelper {
       // }
     } while (fTable == null && retries < 500);
     assertNotNull(fTable);
-    final Region<Object, Object> mRegion = ((ProxyFTableRegion) fTable).getTableRegion();
+    final Region<Object, Object> mRegion = ((FTableImpl) fTable).getTableRegion();
     String path = mRegion.getFullPath();
     assertTrue(path.contains(TABLE_NAME));
 
@@ -560,7 +568,7 @@ public class FTableDescriptorDUnitTest extends MTableDUnitHelper {
    * private void getReconnectedCache() {
    * System.out.println("After ForcedDisconnect -> Reconnect the MCache"); vm0.invoke(new
    * SerializableCallable() {
-   * 
+   *
    * @Override public Object call() throws Exception { cacheBeforeReconnect =
    * cacheBeforeReconnect.getReconnectedCache(); return null; } }); }
    */

@@ -51,6 +51,7 @@ import io.ampool.monarch.table.ftable.FTable;
 import io.ampool.monarch.table.ftable.FTableDescriptor;
 import io.ampool.monarch.table.ftable.Record;
 import io.ampool.monarch.table.ftable.internal.BlockValue;
+import io.ampool.monarch.table.ftable.internal.FTableImpl;
 import io.ampool.monarch.table.ftable.internal.ProxyFTableRegion;
 import io.ampool.monarch.table.internal.ByteArrayKey;
 import io.ampool.monarch.table.internal.SingleVersionRow;
@@ -124,6 +125,10 @@ public class FTableServerScanTests extends MTableDUnitHelper {
   @Test
   public void testFTableScanBasic() {
     testFTableScanBasicInternal(0);
+  }
+
+  @Test
+  public void testFTableScanBasicR() {
     testFTableScanBasicInternal(1); // with redundancy
   }
 
@@ -168,16 +173,11 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       });
     }
 
-    if (index == 0) {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS);
-    } else {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * redundancy);
-    }
+    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS, index);
 
 
     // scan test
     final Scan scan = new Scan();
-
     final List<Integer> recordCounts = new ArrayList<>();
     recordCounts.add(vm0.invoke("t1", new SerializableCallable<Integer>() {
       @Override
@@ -213,6 +213,10 @@ public class FTableServerScanTests extends MTableDUnitHelper {
   @Test
   public void testFTableScanSelectedColumns() {
     testFTableScanSelectedColumnsInternal(0);
+  }
+
+  @Test
+  public void testFTableScanSelectedColumnsR() {
     testFTableScanSelectedColumnsInternal(1); // redundancy
   }
 
@@ -254,11 +258,7 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       });
     }
 
-    if (index == 0) {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS);
-    } else {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * redundancy);
-    }
+    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS, index);
 
     // scan test
     final Scan scan = new Scan();
@@ -331,7 +331,7 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       });
     }
 
-    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS);
+    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS, 0);
 
     // scan test
     Scan scan = new Scan();
@@ -354,6 +354,10 @@ public class FTableServerScanTests extends MTableDUnitHelper {
   @Test
   public void testFTableScanRowKeyFilter() {
     testFTableScanRowKeyFilterInternal(0);
+  }
+
+  @Test
+  public void testFTableScanRowKeyFilterR() {
     testFTableScanRowKeyFilterInternal(1);
   }
 
@@ -384,13 +388,13 @@ public class FTableServerScanTests extends MTableDUnitHelper {
     }
 
     // get all keys from server
-    final Set<Object> keys = ((ProxyFTableRegion) table).getTableRegion().keySetOnServer();
+    final Set<Object> keys = ((FTableImpl) table).getTableRegion().keySetOnServer();
 
     final Iterator<Object> iterator = keys.iterator();
     Set<Object> sortedKeySet = new TreeSet();
     while (iterator.hasNext()) {
       final BlockValue blockValue =
-          (BlockValue) ((ProxyFTableRegion) table).getTableRegion().get(iterator.next());
+          (BlockValue) ((FTableImpl) table).getTableRegion().get(iterator.next());
       // sortedKeySet.addAll(blockValue.);
     }
     final Iterator<Object> itr = sortedKeySet.iterator();
@@ -408,11 +412,7 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       });
     }
 
-    if (index == 0) {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS);
-    } else {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * redundancy);
-    }
+    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS, index);
 
     // scan test
     Scan scan = new Scan();
@@ -440,6 +440,10 @@ public class FTableServerScanTests extends MTableDUnitHelper {
   @Test
   public void testFTableScanFilterList() throws InterruptedException {
     testFTableScanFilterListInternal(0);
+  }
+
+  @Test
+  public void testFTableScanFilterListR() throws InterruptedException {
     testFTableScanFilterListInternal(1);
   }
 
@@ -494,11 +498,7 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       });
     }
 
-    if (index == 0) {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * 2);
-    } else {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * 2 * redundancy);
-    }
+    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * 2, index);
 
     // scan test
     Scan scan = new Scan();
@@ -529,6 +529,10 @@ public class FTableServerScanTests extends MTableDUnitHelper {
   @Test
   public void testFTableScanColumnValueFilter() {
     testFTableScanColumnValueFilterInternal(0);
+  }
+
+  @Test
+  public void testFTableScanColumnValueFilterR() {
     testFTableScanColumnValueFilterInternal(1);
   }
 
@@ -568,11 +572,7 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       });
     }
 
-    if (index == 0) {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS);
-    } else {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * redundancy);
-    }
+    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS, index);
 
     // scan test
     Scan scan = new Scan();
@@ -653,6 +653,10 @@ public class FTableServerScanTests extends MTableDUnitHelper {
   @Test
   public void testFTableScanKeyOnlyFilter() {
     testFTableScanKeyOnlyFilterInternal(0);
+  }
+
+  @Test
+  public void testFTableScanKeyOnlyFilterR() {
     testFTableScanKeyOnlyFilterInternal(1);
   }
 
@@ -692,11 +696,7 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       });
     }
 
-    if (index == 0) {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS);
-    } else {
-      verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS * redundancy);
-    }
+    verifyValuesOnAllVMs(tableName, isOverflowEnabled ? 0 : NUM_ROWS, index);
 
     // scan test
     Scan scan = new Scan();
@@ -846,13 +846,17 @@ public class FTableServerScanTests extends MTableDUnitHelper {
   }
 
 
-  protected void verifyValuesOnAllVMs(String tableName, int expectedRows) {
+  protected void verifyValuesOnAllVMs(String tableName, int expectedRows, int index) {
+    final boolean doScanAll = index > 0;
+    if (doScanAll) {
+      expectedRows *= (redundancy + 1);
+    }
     final ArrayList<VM> vmList = new ArrayList<>(Arrays.asList(vm0, vm1, vm2));
     for (int i = 0; i < vmList.size(); i++) {
       final int res = (int) vmList.get(i).invoke(new SerializableCallable() {
         @Override
         public Object call() throws Exception {
-          return verifyValues(tableName);
+          return verifyValues(tableName, doScanAll);
         }
       });
       actualRows += res;
@@ -860,14 +864,19 @@ public class FTableServerScanTests extends MTableDUnitHelper {
     assertEquals(expectedRows, actualRows);
   }
 
-  protected int verifyValues(String tableName) {
+  private Iterator<BucketRegion> getBucketsIterator(Region region, boolean doScanAll) {
+    return doScanAll ////
+        ? ((PartitionedRegion) region).getDataStore().getAllLocalBucketRegions().iterator()
+        : ((PartitionedRegion) region).getDataStore().getAllLocalPrimaryBucketRegions().iterator();
+  }
+
+  protected int verifyValues(String tableName, final boolean doScanAll) {
     int entriesCount = 0;
     final Region<Object, Object> region = MCacheFactory.getAnyInstance().getRegion(tableName);
     assertNotNull(region);
-    final Iterator<BucketRegion> allLocalPrimaryBucketRegions =
-        ((PartitionedRegion) region).getDataStore().getAllLocalPrimaryBucketRegions().iterator();
-    while (allLocalPrimaryBucketRegions.hasNext()) {
-      final BucketRegion bucketRegion = allLocalPrimaryBucketRegions.next();
+    final Iterator<BucketRegion> itr = getBucketsIterator(region, doScanAll);
+    while (itr.hasNext()) {
+      final BucketRegion bucketRegion = itr.next();
       final RowTupleConcurrentSkipListMap internalMap =
           (RowTupleConcurrentSkipListMap) bucketRegion.entries.getInternalMap();
       final Map concurrentSkipListMap = internalMap.getInternalMap();
@@ -992,7 +1001,7 @@ public class FTableServerScanTests extends MTableDUnitHelper {
       // }
     } while (mtable == null && retries < 500);
     assertNotNull(mtable);
-    final Region<Object, Object> mregion = ((ProxyFTableRegion) mtable).getTableRegion();
+    final Region<Object, Object> mregion = ((FTableImpl) mtable).getTableRegion();
     String path = mregion.getFullPath();
     assertTrue(path.contains(tableName));
     // To verify disk persistence
