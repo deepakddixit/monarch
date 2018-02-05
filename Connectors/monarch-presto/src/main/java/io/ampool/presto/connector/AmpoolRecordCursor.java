@@ -64,6 +64,7 @@ public class AmpoolRecordCursor implements RecordCursor
     private final Iterator<Row> rows;
 
     private Row fields;
+    private long callCount = 0l;
 
     public AmpoolRecordCursor(List<AmpoolColumnHandle> columnHandles, Iterator<Row> iterator)
     {
@@ -101,8 +102,10 @@ public class AmpoolRecordCursor implements RecordCursor
     @Override
     public boolean advanceNextPosition()
     {
+        callCount++;
         log.info("INFORMATION: AmpoolRecordCursor advanceNextPosition() called.");
         if (!rows.hasNext()) {
+            log.debug("AmpoolRecordCursor advanceNextPosition() call count: "+callCount);
             return false;
         }
         fields = rows.next();

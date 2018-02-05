@@ -14,6 +14,29 @@
 
 package io.ampool.monarch.table.facttable.dunit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import io.ampool.monarch.table.Admin;
 import io.ampool.monarch.table.Bytes;
 import io.ampool.monarch.table.Cell;
@@ -21,6 +44,7 @@ import io.ampool.monarch.table.MCache;
 import io.ampool.monarch.table.MCacheFactory;
 import io.ampool.monarch.table.MEvictionPolicy;
 import io.ampool.monarch.table.MTableDUnitHelper;
+import io.ampool.monarch.table.Pair;
 import io.ampool.monarch.table.Row;
 import io.ampool.monarch.table.Scan;
 import io.ampool.monarch.table.Scanner;
@@ -43,6 +67,7 @@ import io.ampool.monarch.table.ftable.internal.ProxyFTableRegion;
 import io.ampool.monarch.table.ftable.utils.FTableUtils;
 import io.ampool.monarch.table.internal.ByteArrayKey;
 import io.ampool.monarch.table.internal.MClientScannerUsingGetAll;
+import io.ampool.monarch.table.internal.MTableUtils;
 import io.ampool.monarch.table.region.map.RowTupleConcurrentSkipListMap;
 import io.ampool.monarch.types.BasicTypes;
 import io.ampool.monarch.types.CompareOp;
@@ -55,6 +80,12 @@ import io.ampool.tierstore.internal.DefaultStore;
 import io.ampool.tierstore.wal.WriteAheadLog;
 import io.ampool.utils.ReflectionUtils;
 import io.ampool.utils.TimestampUtil;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
 import org.apache.geode.cache.Region;
 import org.apache.geode.distributed.internal.ServerLocation;
 import org.apache.geode.internal.cache.BucketRegion;
@@ -68,31 +99,6 @@ import org.apache.geode.test.dunit.VM;
 import org.apache.geode.test.dunit.standalone.DUnitLauncher;
 import org.apache.geode.test.junit.categories.FTableTest;
 import org.apache.geode.test.junit.runners.CategoryWithParameterizedRunnerFactory;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @Category(FTableTest.class)
 @RunWith(Parameterized.class)
@@ -128,7 +134,7 @@ public class FTableScanTests extends MTableDUnitHelper {
   /**
    * Return the method-name. In case of Parameterized tests, the parameters are appended to the
    * method-name (like testMethod[0]) and hence need to be stripped off.
-   *
+   * 
    * @return the test method name
    */
   public static String getMethodName() {
@@ -245,7 +251,6 @@ public class FTableScanTests extends MTableDUnitHelper {
     flushTier1OnAllVMs();
     verifyTier1CountOnAllVMs(tableName, 0);
 
-
     // scan test
     final Scanner scanner = table.getScanner(new Scan());
     int count = 0;
@@ -338,7 +343,6 @@ public class FTableScanTests extends MTableDUnitHelper {
     flushTier1OnAllVMs();
     verifyTier1CountOnAllVMs(tableName, 0);
 
-
     // scan test
     final Scanner scanner = table.getScanner(new Scan());
     int count = 0;
@@ -420,8 +424,6 @@ public class FTableScanTests extends MTableDUnitHelper {
     flushTier1OnAllVMs();
     verifyTier1CountOnAllVMs(tableName, 0);
 
-
-
     // scan test
     Scan scan = new Scan();
     scan.setColumns(Arrays.asList(2));
@@ -471,7 +473,6 @@ public class FTableScanTests extends MTableDUnitHelper {
   /**
    * Ref. GEN-2082: Incorrect ordering for the records inside the bucket. Inside buckets records
    * should be ordered
-   *
    */
   @Test
   public void testFTableScan_OrderingInsideBucket() {
@@ -657,7 +658,6 @@ public class FTableScanTests extends MTableDUnitHelper {
 
   /**
    * Verify scan. With row key filter Using as row key is currently timestamp is key
-   *
    */
   @Test
   public void testFTableScanRowKeyFilter() {
@@ -719,7 +719,6 @@ public class FTableScanTests extends MTableDUnitHelper {
 
     // scan test
     Scan scan = new Scan();
-
 
     Filter filter =
         new RowFilter(CompareOp.LESS_OR_EQUAL, Bytes.toBytes(TimestampUtil.getCurrentTime()));
@@ -880,7 +879,6 @@ public class FTableScanTests extends MTableDUnitHelper {
   }
 
 
-
   /**
    * Verify scan. With row key filter Using as row key is currently timestamp is key
    */
@@ -916,7 +914,6 @@ public class FTableScanTests extends MTableDUnitHelper {
       e.printStackTrace();
     }
 
-
     for (int i = 0; i < NUM_ROWS; i++) {
       table.append(record);
     }
@@ -950,7 +947,6 @@ public class FTableScanTests extends MTableDUnitHelper {
 
     // scan test
     Scan scan = new Scan();
-
 
     Filter filter1 = new SingleColumnValueFilter(FTableDescriptor.INSERTION_TIMESTAMP_COL_NAME,
         CompareOp.GREATER, startTimestamp);
@@ -1024,7 +1020,6 @@ public class FTableScanTests extends MTableDUnitHelper {
     long stopTimestamp1 = TimestampUtil.getCurrentTime();
     Thread.sleep(1000l);
 
-
     if (isOverflowEnabled) {
       final EvictionTrigger trigger = FTableTestHelper.createEvictionTrigger(tableName);
       vm0.invoke(() -> {
@@ -1050,7 +1045,6 @@ public class FTableScanTests extends MTableDUnitHelper {
         + "----------------------------------------------------------------------------------");
     // scan test
     Scan scan = new Scan();
-
 
     Filter filter1 = new SingleColumnValueFilter(FTableDescriptor.INSERTION_TIMESTAMP_COL_NAME,
         CompareOp.GREATER, startTimestamp);
@@ -1107,7 +1101,6 @@ public class FTableScanTests extends MTableDUnitHelper {
 
   /**
    * Verify scan. With column value filter Using as row key is currently timestamp is key
-   *
    */
   @Test
   public void testFTableScanColumnValueFilter() {
@@ -1255,7 +1248,6 @@ public class FTableScanTests extends MTableDUnitHelper {
 
   /**
    * Verify scan. With key only filter Using as row key is currently timestamp is key
-   *
    */
   @Test
   public void testFTableScanKeyOnlyFilter() {
@@ -1306,7 +1298,6 @@ public class FTableScanTests extends MTableDUnitHelper {
     // scan test
     Scan scan = new Scan();
 
-
     // MFilter filter = new RowFilter(CompareOp.LESS_OR_EQUAL,Bytes.toBytes(System.nanoTime()));
     Filter filter = new KeyOnlyFilter();
     scan.setFilter(filter);
@@ -1323,7 +1314,6 @@ public class FTableScanTests extends MTableDUnitHelper {
     flushTier2OnAllVMs();
     verifyTier2CountOnAllVMs(tableName, 0);
   }
-
 
 
   /**
@@ -1401,6 +1391,525 @@ public class FTableScanTests extends MTableDUnitHelper {
     flushTier2OnAllVMs();
     verifyTier2CountOnAllVMs(tableName, 0);
   }
+
+
+  /**
+  
+   *
+  
+   */
+
+  @Test
+
+  public void testFTableScanSetParticularBucketIds() {
+
+    String tableName = getMethodName();
+
+    int actualRows = 0;
+
+    FTableDescriptor fTableDescriptor = new FTableDescriptor();
+
+    fTableDescriptor.setTotalNumOfSplits(10);
+
+    fTableDescriptor.setRedundantCopies(1);
+
+    fTableDescriptor.setBlockSize(3);
+
+    fTableDescriptor.setBlockFormat(blockFormat);
+
+    String partitioningColumn = COLUMN_NAME_PREFIX + 0;
+
+    fTableDescriptor.setPartitioningColumn(partitioningColumn);
+
+    Schema.Builder sb = new Schema.Builder();
+
+    for (int colmnIndex = 0; colmnIndex < NUM_OF_COLUMNS; colmnIndex++) {
+
+      sb.column(COLUMN_NAME_PREFIX + colmnIndex);
+
+    }
+
+    fTableDescriptor.setSchema(sb.build());
+
+    final FTable table = createFTable(tableName, fTableDescriptor);
+
+    assertNotNull(table);
+
+//    vm0.invoke(() -> {
+//
+//      verifyTableOnServer(tableName, fTableDescriptor);
+//
+//    });
+//
+//    vm1.invoke(() -> {
+//
+//      verifyTableOnServer(tableName, fTableDescriptor);
+//
+//    });
+//
+//    vm2.invoke(() -> {
+//
+//      verifyTableOnServer(tableName, fTableDescriptor);
+//
+//    });
+
+    Record record = new Record();
+
+    for (int colIndex = 0; colIndex < NUM_OF_COLUMNS; colIndex++) {
+
+      System.out.println("FTableScanDUnitTest.testFTableScanBasic :: index: " + colIndex
+
+          + " Putting byte[] " + Arrays.toString(Bytes.toBytes(COLUMN_NAME_PREFIX + colIndex)));
+
+      record.add(COLUMN_NAME_PREFIX + colIndex, Bytes.toBytes(COLUMN_NAME_PREFIX + colIndex));
+
+    }
+
+    for (int i = 0; i < NUM_ROWS; i++) {
+
+      /* only to get data distributed across buckets randomly.. */
+
+      record.getValueMap().put(
+
+          new ByteArrayKey(FTableDescriptor.INSERTION_TIMESTAMP_COL_NAME.getBytes()), (long) i);
+
+      table.append(record);
+
+    }
+
+    Map<Integer, Pair<ServerLocation, Long>> primaryMap = new HashMap<>(10);
+
+    Map<Integer, Set<Pair<ServerLocation, Long>>> secondaryMap = new HashMap<>(10);
+
+    MTableUtils.getLocationAndCount(table, primaryMap, secondaryMap);
+
+    System.out.println("Primary Map: " + primaryMap);
+
+    final AtomicLong expectedCount = new AtomicLong(0);
+
+    // scan test
+
+    Scan scan = new Scan();
+
+    Set<Integer> collect = IntStream.range(0, 5).mapToObj(e -> {
+
+      if (primaryMap.containsKey(e)) {
+
+        Pair<ServerLocation, Long> serverLocationLongPair = primaryMap.get(e);
+
+        expectedCount.addAndGet(serverLocationLongPair.getSecond());
+
+      }
+
+      return e;
+
+    }).collect(Collectors.toSet());
+
+    scan.setBucketIds(collect);
+
+    Scanner scanner = table.getScanner(scan);
+
+    if (scanner instanceof MClientScannerUsingGetAll) {
+
+      Set<Integer> bucketIds =
+
+          (Set<Integer>) ReflectionUtils.getFieldValue(scanner, "bucketIdSet");
+
+      assertEquals("Incorrect number of buckets scanned.", collect.size(), bucketIds.size());
+
+      bucketIds.forEach(id -> {
+
+        assertTrue("Bucket " + id + " not expected", collect.contains(id));
+
+      });
+
+    }
+
+    int count = 0;
+
+    Row res = scanner.next();
+
+    while (res != null) {
+
+      count++;
+
+      res = scanner.next();
+
+    }
+
+    System.out
+
+        .println("FTableScanTests.testFTableScanSetParticularBucketIds :: 349 count: " + count);
+
+    assertEquals(expectedCount.intValue(), count);
+
+    //
+
+    scan = new Scan();
+
+    scan.setBucketIds(collect);
+
+    SingleColumnValueFilter
+
+    singleColumnValueFilter =
+
+        new SingleColumnValueFilter(partitioningColumn, CompareOp.EQUAL, partitioningColumn);
+
+    scan.setFilter(singleColumnValueFilter);
+
+    scanner = table.getScanner(scan);
+
+    if (scanner instanceof MClientScannerUsingGetAll) {
+
+      Set<Integer> bucketIds =
+
+          (Set<Integer>) ReflectionUtils.getFieldValue(scanner, "bucketIdSet");
+
+      assertEquals("Incorrect number of buckets scanned.", 1, bucketIds.size());
+
+      assertTrue(bucketIds.contains(0));
+
+    }
+
+    count = 0;
+
+    res = scanner.next();
+
+    while (res != null) {
+
+      count++;
+
+      res = scanner.next();
+
+
+    }
+
+    System.out
+
+        .println("FTableScanTests.testFTableScanSetParticularBucketIds :: 360 count: " + count);
+
+  }
+
+
+  /**
+  
+   *
+  
+   */
+
+  @Test
+
+  public void testFTableScanPartitionedData() {
+
+    String tableName = getMethodName();
+
+    FTableDescriptor fTableDescriptor = new FTableDescriptor();
+
+    int splits = 10;
+
+    fTableDescriptor.setTotalNumOfSplits(splits);
+
+    fTableDescriptor.setRedundantCopies(1);
+
+    fTableDescriptor.setBlockSize(3);
+
+    fTableDescriptor.setBlockFormat(blockFormat);
+
+    String partitioningColumn = COLUMN_NAME_PREFIX + 0;
+
+    fTableDescriptor.setPartitioningColumn(partitioningColumn);
+
+    Schema.Builder sb = new Schema.Builder();
+
+    for (int colmnIndex = 0; colmnIndex < NUM_OF_COLUMNS; colmnIndex++) {
+
+      if (colmnIndex == 0) {
+
+        sb.column(COLUMN_NAME_PREFIX + colmnIndex, BasicTypes.INT);
+
+      } else {
+
+        sb.column(COLUMN_NAME_PREFIX + colmnIndex);
+
+      }
+
+    }
+
+    fTableDescriptor.setSchema(sb.build());
+
+    final FTable table = createFTable(tableName, fTableDescriptor);
+
+    assertNotNull(table);
+
+    vm0.invoke(() -> {
+
+      verifyTableOnServer(tableName, fTableDescriptor);
+
+    });
+
+    vm1.invoke(() -> {
+
+      verifyTableOnServer(tableName, fTableDescriptor);
+
+    });
+
+    vm2.invoke(() -> {
+
+      verifyTableOnServer(tableName, fTableDescriptor);
+
+    });
+
+    Record record = new Record();
+
+    for (int colIndex = 0; colIndex < NUM_OF_COLUMNS; colIndex++) {
+
+      System.out.println("FTableScanDUnitTest.testFTableScanBasic :: index: " + colIndex
+
+          + " Putting byte[] " + Arrays.toString(Bytes.toBytes(COLUMN_NAME_PREFIX + colIndex)));
+
+      record.add(COLUMN_NAME_PREFIX + colIndex, Bytes.toBytes(COLUMN_NAME_PREFIX + colIndex));
+
+    }
+
+    int actualRows = 100;
+
+    int rowsPerBucket = 100 / splits;
+
+    for (int i = 0; i < actualRows; i++) {
+
+      /* only to get data distributed across buckets randomly.. */
+
+      record.getValueMap().put(
+
+          new ByteArrayKey(partitioningColumn.getBytes()), i);
+
+      record.getValueMap().put(
+
+          new ByteArrayKey(FTableDescriptor.INSERTION_TIMESTAMP_COL_NAME.getBytes()), (long) i);
+
+      table.append(record);
+
+    }
+
+    Map<Integer, Pair<ServerLocation, Long>> primaryMap = new HashMap<>(10);
+
+    Map<Integer, Set<Pair<ServerLocation, Long>>> secondaryMap = new HashMap<>(10);
+
+    MTableUtils.getLocationAndCount(table, primaryMap, secondaryMap);
+
+    System.out.println("Primary Map: " + primaryMap);
+
+    final AtomicLong expectedCount = new AtomicLong(0);
+
+    // scan test
+
+    Scan scan = new Scan();
+
+    Set<Integer> collectBKP = IntStream.range(0, 5).mapToObj(e -> {
+
+      if (primaryMap.containsKey(e)) {
+
+        Pair<ServerLocation, Long> serverLocationLongPair = primaryMap.get(e);
+
+        expectedCount.addAndGet(serverLocationLongPair.getSecond());
+
+      }
+
+      return e;
+
+    }).collect(Collectors.toSet());
+
+    Set<Integer> collect = new HashSet<>();
+
+    collect.addAll(collectBKP);
+
+    scan.setBucketIds(collect);
+
+    Scanner scanner = table.getScanner(scan);
+
+    if (scanner instanceof MClientScannerUsingGetAll) {
+
+      Set<Integer> bucketIds =
+
+          (Set<Integer>) ReflectionUtils.getFieldValue(scanner, "bucketIdSet");
+
+      assertEquals("Incorrect number of buckets scanned.", collect.size(), bucketIds.size());
+
+      bucketIds.forEach(id -> {
+
+        assertTrue("Bucket " + id + " not expected", collect.contains(id));
+
+      });
+
+    }
+
+    int count = 0;
+
+    Row res = scanner.next();
+
+    while (res != null) {
+
+      count++;
+
+      res = scanner.next();
+
+    }
+
+    System.out
+
+        .println("FTableScanTests.testFTableScanSetParticularBucketIds :: 349 count: " + count);
+
+    assertEquals(expectedCount.intValue(), count);
+
+    assertEquals(expectedCount.intValue(), rowsPerBucket * collect.size());
+
+    //
+
+    scan = new Scan();
+
+    scan.setBucketIds(collect);
+
+    SingleColumnValueFilter
+
+    singleColumnValueFilter =
+
+        new SingleColumnValueFilter(partitioningColumn, CompareOp.GREATER_OR_EQUAL, 0);
+
+    scan.setFilter(singleColumnValueFilter);
+
+    scanner = table.getScanner(scan);
+
+    if (scanner instanceof MClientScannerUsingGetAll) {
+
+      Set<Integer> bucketIds =
+
+          (Set<Integer>) ReflectionUtils.getFieldValue(scanner, "bucketIdSet");
+
+      assertEquals("Incorrect number of buckets scanned.", 10, bucketIds.size());
+
+      for (int i = 0; i < 10; i++) {
+
+        assertTrue(bucketIds.contains(i));
+
+      }
+
+    }
+
+    count = 0;
+
+    res = scanner.next();
+
+    while (res != null) {
+
+      count++;
+
+      res = scanner.next();
+
+
+    }
+
+    System.out
+
+        .println("FTableScanTests.testFTableScanSetParticularBucketIds :: 360 count: " + count);
+
+    assertEquals(actualRows, count);
+
+    scan = new Scan();
+
+    scan.setBucketIds(collect);
+
+    singleColumnValueFilter =
+
+        new SingleColumnValueFilter(partitioningColumn, CompareOp.GREATER_OR_EQUAL, 50);
+
+    scan.setFilter(singleColumnValueFilter);
+
+    scanner = table.getScanner(scan);
+
+    if (scanner instanceof MClientScannerUsingGetAll) {
+
+      Set<Integer> bucketIds =
+
+          (Set<Integer>) ReflectionUtils.getFieldValue(scanner, "bucketIdSet");
+
+      assertEquals("Incorrect number of buckets scanned.", 10, bucketIds.size());
+
+      for (int i = 0; i < 10; i++) {
+
+        assertTrue(bucketIds.contains(i));
+
+      }
+
+    }
+
+    count = 0;
+
+    res = scanner.next();
+
+    while (res != null) {
+
+      count++;
+
+      res = scanner.next();
+
+
+    }
+
+    System.out
+
+        .println("FTableScanTests.testFTableScanSetParticularBucketIds :: 360 count: " + count);
+
+    assertEquals(50, count);
+
+    scan = new Scan();
+
+    collect.addAll(collectBKP);
+
+    scan.setBucketIds(collect);
+
+    singleColumnValueFilter =
+
+        new SingleColumnValueFilter(partitioningColumn, CompareOp.EQUAL, 50);
+
+    scan.setFilter(singleColumnValueFilter);
+
+    scanner = table.getScanner(scan);
+
+    if (scanner instanceof MClientScannerUsingGetAll) {
+
+      Set<Integer> bucketIds =
+
+          (Set<Integer>) ReflectionUtils.getFieldValue(scanner, "bucketIdSet");
+
+      assertEquals("Incorrect number of buckets scanned.", 1, bucketIds.size());
+
+      System.out.println("FTableScanTests.testFTableScanPartitionedData :: 542 " + bucketIds);
+
+      assertTrue(bucketIds.contains(0));
+
+    }
+
+    count = 0;
+
+    res = scanner.next();
+
+    while (res != null) {
+
+      count++;
+
+      res = scanner.next();
+
+
+    }
+
+    System.out
+
+        .println("FTableScanTests.testFTableScanSetParticularBucketIds :: 360 count: " + count);
+
+    assertEquals(1, count);
+
+  }
+
 
   private void verifyScannedValue(final Row row, final int index) {
     // final SingleVersionRow row = res.getLatestRow();
