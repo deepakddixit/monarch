@@ -15,7 +15,8 @@
  */
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
@@ -25,7 +26,8 @@
     <version>2.0.0</version>
     <packaging>pom</packaging>
     <name>Monarch</name>
-    <description>Next generation data infrastructure products that enable high-performance analytics while reducing both
+    <description>Next generation data infrastructure products that enable high-performance analytics
+        while reducing both
         cost and architectural concerns.
     </description>
     <url>https://ampool.io</url>
@@ -228,12 +230,12 @@
     </build>
 
     <modules>
-	    <!-- <module>monarch-spark_1.6</module>
+        <module>monarch-spark_1.6</module>
         <module>monarch-spark_2.1</module>
         <module>monarch-connect-kafka</module>
         <module>monarch-distributed-test</module>
         <module>monarch-common</module>
-	<module>monarch-hive</module> -->
+        <module>monarch-hive</module>
         <module>monarch-presto</module>
         <module>monarch-assembly-descriptor</module>
         <module>monarch-assembly</module>
@@ -259,7 +261,8 @@
                                         <license
                                                 implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
                                             <licenseFamilyCategory>AMPRL</licenseFamilyCategory>
-                                            <licenseFamilyName>Ampool Source code License</licenseFamilyName>
+                                            <licenseFamilyName>Ampool Source code License
+                                            </licenseFamilyName>
                                             <notes></notes>
                                             <patterns>
                                                 <pattern>Copyright (c) 2017 Ampool, Inc.</pattern>
@@ -268,17 +271,23 @@
                                         <license
                                                 implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
                                             <licenseFamilyCategory>ALEXT</licenseFamilyCategory>
-                                            <licenseFamilyName>Apache License v2.0</licenseFamilyName>
+                                            <licenseFamilyName>Apache License v2.0
+                                            </licenseFamilyName>
                                             <notes></notes>
                                             <patterns>
-                                                <pattern>Licensed under the Apache License, Version 2.0</pattern>
-                                                <pattern>Licensed to the Apache Software Foundation (ASF)</pattern>
+                                                <pattern>Licensed under the Apache License, Version
+                                                    2.0
+                                                </pattern>
+                                                <pattern>Licensed to the Apache Software Foundation
+                                                    (ASF)
+                                                </pattern>
                                             </patterns>
                                         </license>
                                         <license
                                                 implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
                                             <licenseFamilyCategory>CASKL</licenseFamilyCategory>
-                                            <licenseFamilyName>Cask Source code License</licenseFamilyName>
+                                            <licenseFamilyName>Cask Source code License
+                                            </licenseFamilyName>
                                             <notes></notes>
                                             <patterns>
                                                 <pattern>Copyright © 2014 Cask Data, Inc.</pattern>
@@ -287,7 +296,8 @@
                                         <license
                                                 implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
                                             <licenseFamilyCategory>GOOGL</licenseFamilyCategory>
-                                            <licenseFamilyName>Google Source code License</licenseFamilyName>
+                                            <licenseFamilyName>Google Source code License
+                                            </licenseFamilyName>
                                             <notes></notes>
                                             <patterns>
                                                 <pattern>Copyright (c) 2015 Google Inc.</pattern>
@@ -296,43 +306,59 @@
                                         <license
                                                 implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
                                             <licenseFamilyCategory>YCSBL</licenseFamilyCategory>
-                                            <licenseFamilyName>YCSB Source code License - Apache</licenseFamilyName>
+                                            <licenseFamilyName>YCSB Source code License - Apache
+                                            </licenseFamilyName>
                                             <notes></notes>
                                             <patterns>
-                                                <pattern>Copyright (c) 2012 - 2015 YCSB contributors.</pattern>
-                                                <pattern>Copyright (c) 2012 YCSB contributors.</pattern>
-                                                <pattern>Copyright (c) 2015 YCSB contributors</pattern>
+                                                <pattern>Copyright (c) 2012 - 2015 YCSB
+                                                    contributors.
+                                                </pattern>
+                                                <pattern>Copyright (c) 2012 YCSB contributors.
+                                                </pattern>
+                                                <pattern>Copyright (c) 2015 YCSB contributors
+                                                </pattern>
                                             </patterns>
                                         </license>
                                         <license
                                                 implementation="org.apache.rat.analysis.license.SimplePatternBasedLicense">
                                             <licenseFamilyCategory>YHOL</licenseFamilyCategory>
-                                            <licenseFamilyName>Yahoo Source code License - Apache</licenseFamilyName>
+                                            <licenseFamilyName>Yahoo Source code License - Apache
+                                            </licenseFamilyName>
                                             <notes></notes>
                                             <patterns>
                                                 <pattern>Copyright (c) 2010 Yahoo! Inc.</pattern>
-                                                <pattern>Copyright (c) 2011 Yahoo! Inc. All rights reserved.</pattern>
+                                                <pattern>Copyright (c) 2011 Yahoo! Inc. All rights
+                                                    reserved.
+                                                </pattern>
                                                 <pattern>Copyright (c) 2015 Yahoo! Inc.</pattern>
                                             </patterns>
                                         </license>
                                     </licenses>
                                     <licenseFamilies>
-                                        <licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">
+                                        <licenseFamily
+                                                implementation="org.apache.rat.license.SimpleLicenseFamily">
                                             <familyName>Ampool Source code License</familyName>
                                         </licenseFamily>
-                                        <licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">
+                                        <licenseFamily
+                                                implementation="org.apache.rat.license.SimpleLicenseFamily">
                                             <familyName>Apache License v2.0</familyName>
                                         </licenseFamily>
-                                        <licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">
+                                        <licenseFamily
+                                                implementation="org.apache.rat.license.SimpleLicenseFamily">
                                             <familyName>Cask Source code License</familyName>
                                         </licenseFamily>
-                                        <licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">
-                                            <familyName>YCSB Source code License - Apache</familyName>
+                                        <licenseFamily
+                                                implementation="org.apache.rat.license.SimpleLicenseFamily">
+                                            <familyName>YCSB Source code License - Apache
+                                            </familyName>
                                         </licenseFamily>
-                                        <licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">
-                                            <familyName>Yahoo Source code License - Apache</familyName>
+                                        <licenseFamily
+                                                implementation="org.apache.rat.license.SimpleLicenseFamily">
+                                            <familyName>Yahoo Source code License - Apache
+                                            </familyName>
                                         </licenseFamily>
-                                        <licenseFamily implementation="org.apache.rat.license.SimpleLicenseFamily">
+                                        <licenseFamily
+                                                implementation="org.apache.rat.license.SimpleLicenseFamily">
                                             <familyName>Google Source code License</familyName>
                                         </licenseFamily>
                                     </licenseFamilies>
