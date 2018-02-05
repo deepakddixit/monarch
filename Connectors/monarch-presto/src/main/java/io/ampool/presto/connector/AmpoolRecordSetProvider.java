@@ -23,7 +23,6 @@ import com.facebook.presto.spi.RecordSet;
 import com.facebook.presto.spi.connector.ConnectorRecordSetProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.google.common.collect.ImmutableList;
-import io.airlift.log.Logger;
 import io.ampool.client.AmpoolClient;
 import io.ampool.monarch.table.Row;
 import io.ampool.monarch.table.Scan;

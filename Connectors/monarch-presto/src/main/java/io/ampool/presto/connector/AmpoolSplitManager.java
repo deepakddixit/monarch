@@ -86,22 +86,9 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
       splits.add(
           new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), i,
               HostAddress.fromString(serverLocation.getHostName())));
-              /*HostAddress.fromParts(getIPAddress(serverLocation.getHostName()),
-                  serverLocation.getPort())));*/
     }
 //        Collections.shuffle(splits);
     return new FixedSplitSource(splits);
   }
 
-  private String getIPAddress(String hostName) {
-    if (hostName.contains("9fxk")) {
-      return "10.128.0.13";
-    } else if (hostName.contains("kb9m")) {
-      return "10.128.0.23";
-    }
-    if (hostName.contains("xdv0")) {
-      return "10.128.0.24";
-    }
-    return hostName;
-  }
 }
