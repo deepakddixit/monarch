@@ -23,19 +23,20 @@ import java.util.stream.Collectors;
 
 import io.ampool.classification.InterfaceAudience;
 import io.ampool.classification.InterfaceStability;
-import io.ampool.monarch.table.Row;
-import io.ampool.monarch.table.Scan;
 import io.ampool.monarch.table.MTableDescriptor;
 import io.ampool.monarch.table.MTableType;
+import io.ampool.monarch.table.Row;
+import io.ampool.monarch.table.Scan;
 import io.ampool.monarch.table.TableDescriptor;
 import io.ampool.monarch.table.filter.Filter;
 import io.ampool.monarch.table.filter.FilterList;
 import io.ampool.monarch.table.filter.SingleColumnValueFilter;
 import io.ampool.monarch.table.ftable.FTableDescriptor;
 import io.ampool.monarch.types.CompareOp;
+import org.apache.logging.log4j.Logger;
+
 import org.apache.geode.internal.cache.PartitionedRegionHelper;
 import org.apache.geode.internal.logging.LogService;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Abstract implemention of {@link io.ampool.monarch.table.Scanner} defining methods common for
@@ -125,7 +126,7 @@ public abstract class Scanner implements io.ampool.monarch.table.Scanner {
         bucketIdSet.retainAll(callerBucketIdSet);
       }
     } else if (tableDescriptor instanceof FTableDescriptor) {
-      bucketIdSet = getBucketIdsForFTable((FTableDescriptor) tableDescriptor, scan.getFilter());
+      bucketIdSet = getBucketIdsForFTable((FTableDescriptor) tableDescriptor, scan);
     } else {
       bucketIdSet = scan.getBucketIds();
       if (scan.getStartRow() != null || scan.getStopRow() != null) {
@@ -144,46 +145,96 @@ public abstract class Scanner implements io.ampool.monarch.table.Scanner {
 
   /**
    * Get the bucket-ids to be used by the scanner for all single-column-value filter using
+   *
    * partitioning-column with EQUALS condition only. The bucket-id is derived from the hash-code of
+   *
    * the respective column value as the respective column was used for distribution of the rows
+   *
    * during ingestion. In case of multiple condition/filters, the below optimization is used only
+   *
    * when all the condition/filters are used along with AND operator. The optimization is skipped
+   *
    * for OR conditions and in such cases all the buckets are used for scan.
    * 
    * @param td the table descriptor
-   * @param filter the filters to be used during scan
    * @return the buckets to be scanned/traversed during the scan
    */
+
   private static Set<Integer> getBucketIdsForFTable(final FTableDescriptor td,
-      final Filter filter) {
+
+      Scan scan) {
+
+    Filter filter = scan.getFilter();
+
     final ByteArrayKey partitioningColumn = td.getPartitioningColumn();
+
     final int numBuckets = td.getTotalNumOfSplits();
-    Set<Integer> bucketIds = Collections.emptySet();
+
+    Set<Integer> bucketIds = scan.getBucketIds();
+
+    Set<Integer> filteredBucketIDs = Collections.emptySet();
+
     //// if no partitioning column is specified, use all buckets.
-    if (partitioningColumn != null) {
+
+    if (partitioningColumn != null && filter != null) {
+
       final byte[] column = partitioningColumn.getByteArray();
+
       int bid;
+
       if ((bid = getBucketIdForFilter(filter, column, numBuckets)) >= 0) {
-        bucketIds = Collections.singleton(bid);
+
+        filteredBucketIDs = Collections.singleton(bid);
+
       } else if (filter instanceof FilterList) {
+
         FilterList filterList = (FilterList) filter;
+
         List<Filter> filters = filterList.getFilters();
+
         switch (filterList.getOperator()) {
+
           case MUST_PASS_ALL:
-            bucketIds = filters.stream().map(f -> getBucketIdForFilter(f, column, numBuckets))
-                .filter(i -> i >= 0).collect(Collectors.toSet());
+
+            filteredBucketIDs =
+                filters.stream().map(f -> getBucketIdForFilter(f, column, numBuckets))
+
+                    .filter(i -> i >= 0).collect(Collectors.toSet());
+
             break;
+
           case MUST_PASS_ONE:
+
             if (filters.size() == 1
+
                 && (bid = getBucketIdForFilter(filters.get(0), column, numBuckets)) >= 0) {
-              bucketIds = Collections.singleton(bid);
+
+              filteredBucketIDs = Collections.singleton(bid);
+
             }
+
             break;
+
         }
+
       }
+
+      if (!bucketIds.isEmpty())
+
+      {
+        bucketIds.retainAll(filteredBucketIDs);
+      } else {
+
+        bucketIds.addAll(filteredBucketIDs);
+
+      }
+
     }
+
     return bucketIds.isEmpty() ? MTableUtils.getBucketIdSet(null, null, td) : bucketIds;
+
   }
+
 
   /**
    * Return the bucket-id to be used by the scanner if the single-column-value-filter having
