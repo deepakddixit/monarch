@@ -29,6 +29,8 @@ import io.ampool.monarch.table.Scan;
 import io.ampool.presto.log.AmpoolLogger;
 
 import javax.inject.Inject;
+
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -69,7 +71,8 @@ public class AmpoolRecordSetProvider implements ConnectorRecordSetProvider
         // create scan object
         Scan scan = new Scan();
         log.debug("Initializing scan for bucket: "+ampoolSplit.getBucketId());
-        scan.setBucketId(ampoolSplit.getBucketId());
+        scan.setBucketIds(Collections.singleton(ampoolSplit.getBucketId()));
+//        scan.setBucketId(ampoolSplit.getBucketId());
 
         // TODO: Projections and filters on Ampool side
         Iterator<Row> iterator;
