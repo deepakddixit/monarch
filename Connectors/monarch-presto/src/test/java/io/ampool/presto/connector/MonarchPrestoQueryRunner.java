@@ -37,11 +37,15 @@ public final class MonarchPrestoQueryRunner {
     return new AmpoolClient(host, port);
   }
 
-  public DistributedQueryRunner createAmpoolQueryRunner(String host, int port,
-                                                        Map<String, String> extraProperties)
+  public static DistributedQueryRunner createAmpoolQueryRunner(String host, int port,
+                                                               Map<String, String> extraProperties, int workers)
       throws Exception {
+
+    // set test mode so splits will be assigned locallly
+    AmpoolSplitManager.TEST_MODE = true;
+
     DistributedQueryRunner queryRunner =
-        new DistributedQueryRunner(createSession(), 4, extraProperties);
+        new DistributedQueryRunner(createSession(), workers, extraProperties);
 
     queryRunner.installPlugin(new AmpoolPlugin());
     Map<String, String> ampoolProperties =

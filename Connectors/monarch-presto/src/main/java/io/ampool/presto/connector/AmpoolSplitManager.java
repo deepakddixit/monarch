@@ -51,6 +51,7 @@ import org.apache.geode.distributed.internal.ServerLocation;
 
 public class AmpoolSplitManager implements ConnectorSplitManager {
   private static final AmpoolLogger log = AmpoolLogger.get(AmpoolSplitManager.class);
+  public static boolean TEST_MODE = false;
 
   private final String connectorId;
   private final AmpoolClient ampoolClient;
@@ -81,14 +82,21 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
     Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
     MTableUtils.getLocationMap(table.getTable(), null, primaryBucketMap, null, AmpoolOpType.ANY_OP);
     log.debug("Ampool splits location " + TypeHelper.deepToString(primaryBucketMap));
-    for (int i = 0; i < buckets; i++) {
-      ServerLocation serverLocation = primaryBucketMap.get(i);
+
+    primaryBucketMap.forEach((k,v)->{
       splits.add(
-          new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), i,
-              HostAddress.fromString(serverLocation.getHostName())));
-    }
-//        Collections.shuffle(splits);
+          new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), k,
+              getAddress(v)));
+    });
+
     return new FixedSplitSource(splits);
+  }
+
+  private HostAddress getAddress(ServerLocation v) {
+    if(TEST_MODE){
+      return HostAddress.fromString("127.0.0.1");
+    }
+    return HostAddress.fromString(v.getHostName());
   }
 
 }

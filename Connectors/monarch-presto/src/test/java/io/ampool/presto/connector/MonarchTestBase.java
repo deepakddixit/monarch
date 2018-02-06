@@ -15,6 +15,7 @@ package io.ampool.presto.connector;
 
 import io.ampool.monarch.table.MTableDUnitHelper;
 import io.ampool.monarch.table.MTableDescriptor;
+import io.ampool.monarch.table.MTableType;
 
 import org.apache.geode.test.dunit.standalone.DUnitLauncher;
 
@@ -59,7 +60,8 @@ public class MonarchTestBase extends MTableDUnitHelper {
   }
 
   public void createTableInAmpool(String tableName, int numberOfCols) {
-    MTableDescriptor mTableDescriptor = new MTableDescriptor();
+    MTableDescriptor mTableDescriptor = new MTableDescriptor(MTableType.UNORDERED);
+    mTableDescriptor.setTotalNumOfSplits(5);
     for (int i = 0; i < numberOfCols; i++) {
       mTableDescriptor.addColumn(getColumnName(i));
     }
