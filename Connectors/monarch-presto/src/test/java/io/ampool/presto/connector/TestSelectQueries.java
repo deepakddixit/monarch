@@ -4,14 +4,12 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.facebook.presto.spi.connector.Connector;
-import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.facebook.presto.testing.MaterializedResult;
-import com.facebook.presto.testing.TestingConnectorContext;
+import com.facebook.presto.testing.MaterializedRow;
 import com.facebook.presto.tests.DistributedQueryRunner;
-import com.google.common.collect.ImmutableMap;
 import io.ampool.internal.AmpoolOpType;
 import io.ampool.monarch.table.MTable;
 import io.ampool.monarch.table.Put;
@@ -33,27 +31,16 @@ import org.apache.geode.test.dunit.IgnoredException;
  */
 public class TestSelectQueries extends MonarchTestBase {
 
-  static {
-    IgnoredException.addIgnoredException("java.lang.NoSuchFieldError");
-  }
-
   final int NO_OF_COLS = 5;
   final int NO_OF_RECORDS = 20;
+
 
   String keySpace = "ampool";
 
   @Test
   public void testRowCount()
       throws Exception {
-
-    AmpoolConnectorFactory connectorFactory = new AmpoolConnectorFactory();
-    String connectorId = "test-connector";
-    Connector connector = connectorFactory.create(connectorId, ImmutableMap.of(
-        MonarchProperties.LOCATOR_HOST, getLocatorHost(),
-        MonarchProperties.LOCATOR_PORT, String.valueOf(getLocatorPort())),
-        new TestingConnectorContext());
-
-    ConnectorMetadata metadata = connector.getMetadata(AmpoolTransactionHandle.INSTANCE);
+    IgnoredException.addIgnoredException("java.lang.NoSuchFieldError");
 
     String tableName = getTestMethodName().toLowerCase();
     createTableInAmpool(tableName, NO_OF_COLS);
@@ -67,14 +54,43 @@ public class TestSelectQueries extends MonarchTestBase {
 
     System.out.println();
 
-    DistributedQueryRunner
-        ampoolQueryRunner =
-        MonarchPrestoQueryRunner
-            .createAmpoolQueryRunner(getLocatorHost(), getLocatorPort(), Collections.emptyMap(),5);
+    DistributedQueryRunner ampoolQueryRunner = getDistributedQueryRunner();
+
+    MaterializedResult execute = ampoolQueryRunner.execute("select count(*) from " + tableName);
+
+    assertEquals(1, execute.getRowCount());
+
+    MaterializedRow materializedRow = execute.getMaterializedRows().get(0);
+    Object field = materializedRow.getField(0);
+    assertEquals(new Long(NO_OF_RECORDS), new Long((long) field));
+
+    ampoolQueryRunner.close();
+  }
+
+
+  @Test
+  public void testSelectStar()
+      throws Exception {
+    IgnoredException.addIgnoredException("java.lang.NoSuchFieldError");
+
+    String tableName = getTestMethodName().toLowerCase();
+    createTableInAmpool(tableName, NO_OF_COLS);
+
+    populateTable(tableName, NO_OF_RECORDS);
+
+    MTable mTable = getmClientCache().getMTable(tableName);
+
+    Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
+    MTableUtils.getLocationMap(mTable, null, primaryBucketMap, null, AmpoolOpType.ANY_OP);
+
+    System.out.println();
+
+    DistributedQueryRunner ampoolQueryRunner = getDistributedQueryRunner();
 
     MaterializedResult execute = ampoolQueryRunner.execute("select * from " + tableName);
-
-    assertEquals(NO_OF_RECORDS, execute.getRowCount());
+    List<MaterializedRow> materializedRows = execute.getMaterializedRows();
+    assertEquals(NO_OF_RECORDS, materializedRows.size());
+    ampoolQueryRunner.close();
   }
 
   private void populateTable(String tableName, int rows) {

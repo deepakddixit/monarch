@@ -13,6 +13,9 @@
  */
 package io.ampool.presto.connector;
 
+import java.util.Collections;
+
+import com.facebook.presto.tests.DistributedQueryRunner;
 import io.ampool.monarch.table.MTableDUnitHelper;
 import io.ampool.monarch.table.MTableDescriptor;
 import io.ampool.monarch.table.MTableType;
@@ -27,7 +30,7 @@ import org.apache.geode.test.dunit.standalone.DUnitLauncher;
  * time.
  */
 public class MonarchTestBase extends MTableDUnitHelper {
-
+  final int PRESTO_WORKERS = 3;
 
   @Override
   public void postSetUp() throws Exception {
@@ -65,10 +68,16 @@ public class MonarchTestBase extends MTableDUnitHelper {
     for (int i = 0; i < numberOfCols; i++) {
       mTableDescriptor.addColumn(getColumnName(i));
     }
-    getmClientCache().getAdmin().createMTable(tableName,mTableDescriptor);
+    getmClientCache().getAdmin().createMTable(tableName, mTableDescriptor);
   }
 
-  public String getColumnName(int suffix){
-    return "COL_"+suffix;
+  public String getColumnName(int suffix) {
+    return "COL_" + suffix;
+  }
+
+
+  public DistributedQueryRunner getDistributedQueryRunner() throws Exception {
+    return MonarchPrestoQueryRunner
+        .createAmpoolQueryRunner(getLocatorHost(), getLocatorPort(), Collections.emptyMap(),PRESTO_WORKERS);
   }
 }
