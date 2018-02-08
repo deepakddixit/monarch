@@ -13,14 +13,6 @@
  */
 package io.ampool.presto.connector;
 
-import static com.facebook.presto.testing.TestingConnectorSession.SESSION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ConnectorTableHandle;
 import com.facebook.presto.spi.SchemaTableName;
@@ -28,14 +20,18 @@ import com.facebook.presto.spi.connector.Connector;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.facebook.presto.testing.TestingConnectorContext;
 import com.google.common.collect.ImmutableMap;
+import org.apache.geode.test.dunit.IgnoredException;
 import org.junit.Test;
 
-import org.apache.geode.test.dunit.IgnoredException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.facebook.presto.testing.TestingConnectorSession.SESSION;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestMonarchPrestoMetadata extends MonarchTestBase {
-  static {
-    IgnoredException.addIgnoredException("java.lang.NoSuchFieldError");
-  }
 
   final int NO_OF_COLS = 5;
 
@@ -44,6 +40,7 @@ public class TestMonarchPrestoMetadata extends MonarchTestBase {
   @Test
   public void testListTable()
       throws Exception {
+    IgnoredException.addIgnoredException("java.lang.NoSuchFieldError");
 
     AmpoolConnectorFactory connectorFactory = new AmpoolConnectorFactory();
     String connectorId = "test-connector";
@@ -68,6 +65,9 @@ public class TestMonarchPrestoMetadata extends MonarchTestBase {
   @Test
   public void testListColumnsTable()
       throws Exception {
+
+    IgnoredException.addIgnoredException("java.lang.NoSuchFieldError");
+
 
     AmpoolConnectorFactory connectorFactory = new AmpoolConnectorFactory();
     String connectorId = "test-connector";
