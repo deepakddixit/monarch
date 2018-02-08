@@ -51,6 +51,9 @@ import static java.lang.String.format;
 
 public class AmpoolRecordCursor implements RecordCursor
 {
+
+    private static int NUMBER_FORMAT_EXCEPTION_SPECIAL_NUMBER = -1;
+
     private static final AmpoolLogger log = AmpoolLogger.get(AmpoolRecordCursor.class);
 
     private static final TimeZone gmt = TimeZone.getTimeZone("GMT");
@@ -118,7 +121,7 @@ public class AmpoolRecordCursor implements RecordCursor
         checkState(fields != null, "Cursor has not been advanced yet");
 
         int columnIndex = fieldToColumnIndex[field];
-        return fields.getCells().get(columnIndex).getColumnValue().toString();
+        return String.valueOf(fields.getCells().get(columnIndex).getColumnValue())/*.toString()*/;
     }
 
     @Override
@@ -162,7 +165,12 @@ public class AmpoolRecordCursor implements RecordCursor
         else
         {
             checkFieldType(i, BIGINT, INTEGER);
-            return Long.parseLong(getFieldValue(i));
+            try{
+                return Long.parseLong(getFieldValue(i));
+            }catch (NumberFormatException e){
+                return NUMBER_FORMAT_EXCEPTION_SPECIAL_NUMBER;
+            }
+
         }
     }
 

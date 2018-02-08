@@ -19,6 +19,7 @@ import io.ampool.monarch.table.ftable.FTable;
 import io.ampool.monarch.table.ftable.Record;
 import io.ampool.monarch.table.internal.MTableUtils;
 import io.ampool.monarch.table.internal.Table;
+import io.ampool.monarch.types.BasicTypes;
 import io.ampool.monarch.types.TypeUtils;
 import org.junit.Test;
 
@@ -93,32 +94,37 @@ public class TestSelectQueries extends MonarchTestBase {
     ampoolQueryRunner.close();
   }
 
-  private void populateTable(String tableName, int rows) {
-    MClientCache mClientCache = getmClientCache();
-    Table anyTable = ((MonarchCacheImpl) mClientCache).getAnyTable(tableName);
-    TableDescriptor tableDescriptor = anyTable.getTableDescriptor();
-    if (anyTable instanceof FTable) {
-      for (int i = 0; i < rows; i++) {
-        Record record = new Record();
-        tableDescriptor.getColumnDescriptors().forEach(cd -> {
-          Object randomValue = TypeUtils.getRandomValue(cd.getColumnType());
-          record.add(cd.getColumnNameAsString(), randomValue);
-        });
-        ((FTable) anyTable).append(record);
-      }
+  @Test
+  public void testSelectWhere()
+      throws Exception {
+    IgnoredException.addIgnoredException("java.lang.NoSuchFieldError");
 
-    } else if (anyTable instanceof MTable) {
-      Put record = new Put(TypeUtils.getRandomBytes(8));
-      tableDescriptor.getColumnDescriptors().forEach(cd -> {
-        Object randomValue = TypeUtils.getRandomValue(cd.getColumnType());
-        record.addColumn(cd.getColumnNameAsString(), randomValue);
-      });
-      ((MTable) anyTable).put(record);
+    String tableName = getTestMethodName().toLowerCase();
+    createTableInAmpool(tableName, NO_OF_COLS, BasicTypes.INT);
 
-      for (int i = 1; i < rows; i++) {
-        record.setRowKey(TypeUtils.getRandomBytes(8));
-        ((MTable) anyTable).put(record);
-      }
+    populateTable(tableName, NO_OF_RECORDS);
+
+    MTable mTable = getmClientCache().getMTable(tableName);
+
+    for (int i = 1; i <= NO_OF_RECORDS; i++) {
+      Put put = new Put(TypeUtils.getRandomBytes(8));
+      put.addColumn(getColumnName(0), i);
+      mTable.put(put);
     }
+
+    Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
+    MTableUtils.getLocationMap(mTable, null, primaryBucketMap, null, AmpoolOpType.ANY_OP);
+
+    DistributedQueryRunner ampoolQueryRunner = getDistributedQueryRunner();
+
+    MaterializedResult
+        execute =
+        ampoolQueryRunner.execute(
+            "select * from " + tableName + " where (" + getColumnName(0) + " > 5 AND "+ getColumnName(0) + " < 10) OR (" + getColumnName(0) + " > 15 AND "+ getColumnName(0) + " < 20)");
+    List<MaterializedRow> materializedRows = execute.getMaterializedRows();
+    assertEquals(1, materializedRows.size());
+    ampoolQueryRunner.close();
   }
+
+
 }

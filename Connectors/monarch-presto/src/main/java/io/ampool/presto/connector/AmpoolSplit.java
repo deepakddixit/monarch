@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import io.airlift.log.Logger;
+import io.ampool.monarch.table.filter.Filter;
 import io.ampool.presto.log.AmpoolLogger;
 
 public class AmpoolSplit implements ConnectorSplit
@@ -38,18 +39,22 @@ public class AmpoolSplit implements ConnectorSplit
     private final int bucketId;
     private final HostAddress address;
 
+    private final Filter filters;
+
     @JsonCreator
     public AmpoolSplit(@JsonProperty("connectorId") String connectorId,
                        @JsonProperty("schemaName") String schemaName,
                        @JsonProperty("tableName") String tableName,
                        @JsonProperty("bucketId") int bucketId,
-                       @JsonProperty("address") HostAddress address)
+                       @JsonProperty("address") HostAddress address,
+                       @JsonProperty("filter") Filter filters)
     {
         this.schemaName = requireNonNull(schemaName, "schema name is null");
         this.connectorId = requireNonNull(connectorId, "connector id is null");
         this.tableName = requireNonNull(tableName, "table name is null");
         this.bucketId = requireNonNull(bucketId, "bucket id is null");
         this.address = requireNonNull(address, "address is null");
+        this.filters = filters;
 //        log.debug("INFORMATION: AmpoolSplit created successfully. split "+toString());
     }
 
@@ -107,6 +112,10 @@ public class AmpoolSplit implements ConnectorSplit
     {
         log.info("INFORMATION: AmpoolSplit getInfo() called.");
         return this;
+    }
+
+    public Filter getFilters() {
+        return filters;
     }
 
     @Override

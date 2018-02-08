@@ -67,11 +67,11 @@ public class AmpoolRecordSetProvider implements ConnectorRecordSetProvider
             handles.add((AmpoolColumnHandle) handle);
         }
 
-
         // create scan object
         Scan scan = new Scan();
         log.debug("Initializing scan for bucket: "+ampoolSplit.getBucketId());
         scan.setBucketIds(Collections.singleton(ampoolSplit.getBucketId()));
+        scan.setFilter(ampoolSplit.getFilters());
 //        scan.setBucketId(ampoolSplit.getBucketId());
 
         // TODO: Projections and filters on Ampool side

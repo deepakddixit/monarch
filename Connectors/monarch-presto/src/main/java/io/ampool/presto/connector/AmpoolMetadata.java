@@ -85,9 +85,10 @@ public class AmpoolMetadata implements ConnectorMetadata
     public List<ConnectorTableLayoutResult> getTableLayouts(ConnectorSession connectorSession, ConnectorTableHandle connectorTableHandle, Constraint<ColumnHandle> constraint, Optional<Set<ColumnHandle>> optional)
     {
         log.info("INFORMATION: AmpoolMetadata getTableLayouts() called.");
+        log.debug("Constaints->>> "+constraint);
 
         AmpoolTableHandle tableHandle = (AmpoolTableHandle) connectorTableHandle;
-        ConnectorTableLayout layout = new ConnectorTableLayout(new AmpoolTableLayoutHandle(tableHandle));
+        ConnectorTableLayout layout = new ConnectorTableLayout(new AmpoolTableLayoutHandle(tableHandle,constraint.getSummary()));
         return ImmutableList.of(new ConnectorTableLayoutResult(layout, constraint.getSummary()));
     }
 

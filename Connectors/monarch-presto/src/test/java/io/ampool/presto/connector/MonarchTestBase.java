@@ -16,10 +16,21 @@ package io.ampool.presto.connector;
 import java.util.Collections;
 
 import com.facebook.presto.tests.DistributedQueryRunner;
+import io.ampool.monarch.table.MTable;
 import io.ampool.monarch.table.MTableDUnitHelper;
 import io.ampool.monarch.table.MTableDescriptor;
 import io.ampool.monarch.table.MTableType;
+import io.ampool.monarch.table.Put;
+import io.ampool.monarch.table.TableDescriptor;
+import io.ampool.monarch.table.client.MClientCache;
+import io.ampool.monarch.table.ftable.FTable;
+import io.ampool.monarch.table.ftable.Record;
+import io.ampool.monarch.table.internal.Table;
+import io.ampool.monarch.types.BasicTypes;
+import io.ampool.monarch.types.TypeUtils;
+import io.ampool.monarch.types.interfaces.DataType;
 
+import org.apache.geode.internal.cache.MonarchCacheImpl;
 import org.apache.geode.test.dunit.standalone.DUnitLauncher;
 
 /**
@@ -71,6 +82,15 @@ public class MonarchTestBase extends MTableDUnitHelper {
     getmClientCache().getAdmin().createMTable(tableName, mTableDescriptor);
   }
 
+  public void createTableInAmpool(String tableName, int numberOfCols, BasicTypes type) {
+    MTableDescriptor mTableDescriptor = new MTableDescriptor(MTableType.UNORDERED);
+    mTableDescriptor.setTotalNumOfSplits(5);
+    for (int i = 0; i < numberOfCols; i++) {
+      mTableDescriptor.addColumn(getColumnName(i), type);
+    }
+    getmClientCache().getAdmin().createMTable(tableName, mTableDescriptor);
+  }
+
   public String getColumnName(int suffix) {
     return "COL_" + suffix;
   }
@@ -79,5 +99,34 @@ public class MonarchTestBase extends MTableDUnitHelper {
   public DistributedQueryRunner getDistributedQueryRunner() throws Exception {
     return MonarchPrestoQueryRunner
         .createAmpoolQueryRunner(getLocatorHost(), getLocatorPort(), Collections.emptyMap(),PRESTO_WORKERS);
+  }
+
+  public void populateTable(String tableName, int rows) {
+    MClientCache mClientCache = getmClientCache();
+    Table anyTable = ((MonarchCacheImpl) mClientCache).getAnyTable(tableName);
+    TableDescriptor tableDescriptor = anyTable.getTableDescriptor();
+    if (anyTable instanceof FTable) {
+      for (int i = 0; i < rows; i++) {
+        Record record = new Record();
+        tableDescriptor.getColumnDescriptors().forEach(cd -> {
+          Object randomValue = TypeUtils.getRandomValue(cd.getColumnType());
+          record.add(cd.getColumnNameAsString(), randomValue);
+        });
+        ((FTable) anyTable).append(record);
+      }
+
+    } else if (anyTable instanceof MTable) {
+      Put record = new Put(TypeUtils.getRandomBytes(8));
+      tableDescriptor.getColumnDescriptors().forEach(cd -> {
+        Object randomValue = TypeUtils.getRandomValue(cd.getColumnType());
+        record.addColumn(cd.getColumnNameAsString(), randomValue);
+      });
+      ((MTable) anyTable).put(record);
+
+      for (int i = 1; i < rows; i++) {
+        record.setRowKey(TypeUtils.getRandomBytes(8));
+        ((MTable) anyTable).put(record);
+      }
+    }
   }
 }

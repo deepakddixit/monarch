@@ -16,7 +16,9 @@
 */
 package io.ampool.presto.connector;
 
+import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ConnectorTableLayoutHandle;
+import com.facebook.presto.spi.predicate.TupleDomain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.airlift.log.Logger;
@@ -30,10 +32,17 @@ public class AmpoolTableLayoutHandle implements ConnectorTableLayoutHandle
 
     private final AmpoolTableHandle table;
 
+    public TupleDomain<ColumnHandle> getConstraints() {
+        return constraints;
+    }
+
+    private final TupleDomain<ColumnHandle> constraints;
+
     @JsonCreator
-    public AmpoolTableLayoutHandle(@JsonProperty("table") AmpoolTableHandle table)
+    public AmpoolTableLayoutHandle(@JsonProperty("table") AmpoolTableHandle table, @JsonProperty("constraint") TupleDomain<ColumnHandle> constraint)
     {
         this.table = table;
+        this.constraints = constraint;
         log.info("INFORMATION: AmpoolTableLayoutHandle created successfully.");
     }
 
