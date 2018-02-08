@@ -16,10 +16,8 @@
 */
 package io.ampool.presto.connector;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static java.util.Collections.nCopies;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
@@ -41,10 +39,6 @@ import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.facebook.presto.spi.predicate.Domain;
 import com.facebook.presto.spi.predicate.Range;
 import com.facebook.presto.spi.predicate.TupleDomain;
-import com.facebook.presto.spi.predicate.ValueSet;
-import com.facebook.presto.spi.type.Type;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import io.ampool.client.AmpoolClient;
 import io.ampool.internal.AmpoolOpType;
 import io.ampool.monarch.table.TableDescriptor;
@@ -94,7 +88,7 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
     Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
     MTableUtils.getLocationMap(table.getTable(), null, primaryBucketMap, null, AmpoolOpType.ANY_OP);
     log.debug("Ampool splits location " + TypeHelper.deepToString(primaryBucketMap));
-
+    log.debug("Using filters " + TypeHelper.deepToString(filter));
     primaryBucketMap.forEach((k, v) -> {
       splits.add(
           new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), k,
@@ -105,38 +99,19 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
   }
 
   private Filter convertToAmpoolFilters(TupleDomain<ColumnHandle> queryConstraints) {
+    FilterList filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+
     Map<ColumnHandle, Domain> columnHandleDomainMap = queryConstraints.getDomains().get();
-    FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
 
-    columnHandleDomainMap.forEach(((columnHandle, domain) -> {
-      String columnName = ((AmpoolColumnHandle) columnHandle).getColumnName();
-      ValueSet values = domain.getValues();
-      if (values.isSingleValue()) {
-        Object singleValue = values.getSingleValue();
-        SingleColumnValueFilter
-            filter =
-            new SingleColumnValueFilter(columnName, CompareOp.EQUAL, singleValue);
-        log.debug("Information : Using filter: " + filter);
-        filterList.addFilter(filter);
-      }
-    }));
-    return filterList;
-  }
-
-  private List<String> toConjuncts(List<AmpoolColumnHandle> columns,
-                                   TupleDomain<ColumnHandle> tupleDomain) {
-    ImmutableList.Builder<String> builder = ImmutableList.builder();
-    for (AmpoolColumnHandle column : columns) {
-      Type type = column.getColumnType();
-      Domain domain = tupleDomain.getDomains().get().get(column);
+    columnHandleDomainMap.forEach((columnHandle, domain) -> {
       if (domain != null) {
-//        builder.add(toPredicate(column.getColumnName(), domain, type));
+        filters.addFilter(toPredicate(((AmpoolColumnHandle) columnHandle).getColumnName(), domain));
       }
-    }
-    return builder.build();
+    });
+    return filters;
   }
 
-  private Filter toPredicate(String columnName, Domain domain, Type type) {
+  private Filter toPredicate(String columnName, Domain domain) {
 //    checkArgument(domain.getType().isOrderable(), "Domain type must be orderable");
 
 //    if (domain.getValues().isNone()) {
@@ -154,14 +129,14 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
       if (range.isSingleValue()) {
         singleValues.add(range.getLow().getValue());
       } else {
-        List<String> rangeConjuncts = new ArrayList<>();
+        List<Filter> rangeConjuncts = new ArrayList<>();
         if (!range.getLow().isLowerUnbounded()) {
           switch (range.getLow().getBound()) {
             case ABOVE:
-//              rangeConjuncts.add(toPredicate(columnName, ">", range.getLow().getValue(), type));
+              rangeConjuncts.add(toPredicate(columnName, ">", range.getLow().getValue()));
               break;
             case EXACTLY:
-//              rangeConjuncts.add(toPredicate(columnName, ">=", range.getLow().getValue(), type));
+              rangeConjuncts.add(toPredicate(columnName, ">=", range.getLow().getValue()));
               break;
             case BELOW:
               throw new IllegalArgumentException("Low marker should never use BELOW bound");
@@ -174,18 +149,22 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
             case ABOVE:
               throw new IllegalArgumentException("High marker should never use ABOVE bound");
             case EXACTLY:
-//              rangeConjuncts.add(toPredicate(columnName, "<=", range.getHigh().getValue(), type));
+              rangeConjuncts.add(toPredicate(columnName, "<=", range.getHigh().getValue()));
               break;
             case BELOW:
-//              rangeConjuncts.add(toPredicate(columnName, "<", range.getHigh().getValue(), type));
+              rangeConjuncts.add(toPredicate(columnName, "<", range.getHigh().getValue()));
               break;
             default:
               throw new AssertionError("Unhandled bound: " + range.getHigh().getBound());
           }
         }
-        // If rangeConjuncts is null, then the range was ALL, which should already have been checked for
-        checkState(!rangeConjuncts.isEmpty());
-//        disjuncts.add("(" + Joiner.on(" AND ").join(rangeConjuncts) + ")");
+        if (!rangeConjuncts.isEmpty()) {
+          FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+          rangeConjuncts.forEach(filter -> {
+            filterList.addFilter(filter);
+          });
+          disjuncts.add(filterList);
+        }
       }
     }
 
@@ -195,7 +174,7 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
     } else if (singleValues.size() > 1) {
       FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
       for (Object value : singleValues) {
-        filterList.addFilter(toPredicate(columnName,"=",value));
+        filterList.addFilter(toPredicate(columnName, "=", value));
       }
       disjuncts.add(filterList);
     }
@@ -205,21 +184,36 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
 //    if (domain.isNullAllowed()) {
 //      disjuncts.add(columnName + " IS NULL");
 //    }
+    FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+    disjuncts.forEach(filter -> {
+      filterList.addFilter(filter);
+    });
+    disjuncts.add(filterList);
 
-    return null;
+    return filterList;
 //    return "(" + Joiner.on(" OR ").join(disjuncts) + ")";
   }
 
   private SingleColumnValueFilter toPredicate(String columnName, String operator, Object value/*, Type type*/) {
     CompareOp scanOperator = getScanOperator(operator);
-    SingleColumnValueFilter filter = new SingleColumnValueFilter(columnName,scanOperator,value);
+    SingleColumnValueFilter filter = new SingleColumnValueFilter(columnName, scanOperator, value);
     return filter;
   }
 
   private CompareOp getScanOperator(String operator) {
-    switch (operator){
+    switch (operator) {
       case "=":
         return CompareOp.EQUAL;
+      case ">":
+        return CompareOp.GREATER;
+      case ">=":
+        return CompareOp.GREATER_OR_EQUAL;
+      case "<":
+        return CompareOp.LESS;
+      case "<=":
+        return CompareOp.LESS_OR_EQUAL;
+      case "!=":
+        return CompareOp.NOT_EQUAL;
     }
     return null;
   }

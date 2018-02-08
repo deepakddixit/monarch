@@ -120,7 +120,7 @@ public class TestSelectQueries extends MonarchTestBase {
     MaterializedResult
         execute =
         ampoolQueryRunner.execute(
-            "select * from " + tableName + " where (" + getColumnName(0) + " > 5 AND "+ getColumnName(0) + " < 10) OR (" + getColumnName(0) + " > 15 AND "+ getColumnName(0) + " < 20)");
+            "select * from " + tableName + " where " + getColumnName(0) + " > 5");
     List<MaterializedRow> materializedRows = execute.getMaterializedRows();
     assertEquals(1, materializedRows.size());
     ampoolQueryRunner.close();
