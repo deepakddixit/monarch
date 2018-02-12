@@ -71,7 +71,8 @@ public class AmpoolRecordSetProvider implements ConnectorRecordSetProvider
         Scan scan = new Scan();
         log.debug("Initializing scan for bucket: "+ampoolSplit.getBucketId());
         scan.setBucketIds(Collections.singleton(ampoolSplit.getBucketId()));
-        scan.setFilter(ampoolSplit.getFilters());
+        if(ampoolSplit.getFilters() != null)
+            scan.setFilter(ampoolSplit.getFilters());
 //        scan.setBucketId(ampoolSplit.getBucketId());
 
         // TODO: Projections and filters on Ampool side
