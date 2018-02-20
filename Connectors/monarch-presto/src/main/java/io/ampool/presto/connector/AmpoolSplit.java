@@ -16,18 +16,18 @@
 */
 package io.ampool.presto.connector;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.List;
-
 import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.HostAddress;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
-import io.airlift.log.Logger;
 import io.ampool.monarch.table.filter.Filter;
 import io.ampool.presto.log.AmpoolLogger;
+
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNull;
 
 public class AmpoolSplit implements ConnectorSplit
 {
@@ -36,7 +36,7 @@ public class AmpoolSplit implements ConnectorSplit
     private final String connectorId;
     private final String schemaName;
     private final String tableName;
-    private final int bucketId;
+    private final Set<Integer> bucketId;
     private final HostAddress address;
 
     private final Filter filters;
@@ -45,7 +45,7 @@ public class AmpoolSplit implements ConnectorSplit
     public AmpoolSplit(@JsonProperty("connectorId") String connectorId,
                        @JsonProperty("schemaName") String schemaName,
                        @JsonProperty("tableName") String tableName,
-                       @JsonProperty("bucketId") int bucketId,
+                       @JsonProperty("bucketId") Set<Integer> bucketId,
                        @JsonProperty("address") HostAddress address,
                        @JsonProperty("filter") Filter filters)
     {
@@ -80,7 +80,7 @@ public class AmpoolSplit implements ConnectorSplit
     }
 
     @JsonProperty
-    public int getBucketId()
+    public Set<Integer> getBucketId()
     {
         log.info("INFORMATION: AmpoolSplit getBucketId() called.");
         return bucketId;

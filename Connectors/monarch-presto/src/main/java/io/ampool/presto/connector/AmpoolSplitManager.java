@@ -16,16 +16,6 @@
 */
 package io.ampool.presto.connector;
 
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.inject.Inject;
-
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ConnectorSession;
 import com.facebook.presto.spi.ConnectorSplit;
@@ -37,14 +27,22 @@ import com.facebook.presto.spi.connector.ConnectorSplitManager;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.facebook.presto.spi.predicate.TupleDomain;
 import io.ampool.client.AmpoolClient;
-import io.ampool.internal.AmpoolOpType;
 import io.ampool.monarch.table.TableDescriptor;
 import io.ampool.monarch.table.filter.Filter;
 import io.ampool.monarch.table.internal.MTableUtils;
 import io.ampool.monarch.types.TypeHelper;
 import io.ampool.presto.log.AmpoolLogger;
-
 import org.apache.geode.distributed.internal.ServerLocation;
+
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.Objects.requireNonNull;
 
 public class AmpoolSplitManager implements ConnectorSplitManager {
   private static final AmpoolLogger log = AmpoolLogger.get(AmpoolSplitManager.class);
@@ -80,24 +78,34 @@ public class AmpoolSplitManager implements ConnectorSplitManager {
     TableDescriptor tableDescriptor = table.getTable().getTableDescriptor();
     int buckets = tableDescriptor.getTotalNumOfSplits();
     Map<Integer, ServerLocation> primaryBucketMap = new HashMap<>(113);
-    MTableUtils.getLocationMap(table.getTable(), null, primaryBucketMap, null, AmpoolOpType.ANY_OP);
-    log.debug("Ampool splits location " + TypeHelper.deepToString(primaryBucketMap));
-    log.debug("Using filters " + TypeHelper.deepToString(filter));
-    primaryBucketMap.forEach((k, v) -> {
+//    MTableUtils.getLocationMap(table.getTable(), null, primaryBucketMap, null, AmpoolOpType.ANY_OP);
+    Map<Integer, Set<ServerLocation>> bucketLocationMap = new HashMap<>();
+    List<MTableUtils.MSplit> splits1 = MTableUtils.getSplits(table.getTable().getName(), 4, buckets, bucketLocationMap);
+
+    for (MTableUtils.MSplit mSplit : splits1) {
       splits.add(
-          new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), k,
-              getAddress(v), filter));
-    });
+          new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), mSplit.getBuckets(),
+              getAddress(mSplit.getServers().iterator().next()), filter));
+    }
+    log.debug("Ampool splits location " + TypeHelper.deepToString(splits));
+//
+//    log.debug("Ampool splits location " + TypeHelper.deepToString(primaryBucketMap));
+//    log.debug("Using filters " + TypeHelper.deepToString(filter));
+//    primaryBucketMap.forEach((k, v) -> {
+//      splits.add(
+//          new AmpoolSplit(connectorId, tableHandle.getSchemaName(), tableHandle.getTableName(), k,
+//              getAddress(v), filter));
+//    });
 
     return new FixedSplitSource(splits);
   }
 
 
-  private HostAddress getAddress(ServerLocation v) {
+  private HostAddress getAddress(String v) {
     if (TEST_MODE) {
       return HostAddress.fromString("127.0.0.1");
     }
-    return HostAddress.fromString(v.getHostName());
+    return HostAddress.fromString(v);
   }
 
 }
